@@ -28,6 +28,8 @@ DATA_DIR=/tmp/devops-food-data PORT=8080 python app.py
 
 The SQLite schema is in `storage.py`: `restaurants` is owned by the collection, while `visits` and `ordered_items` belong to dining history. A visit refers to one restaurant by ID. The final behavior, validation, and upload rules are still pending.
 
+The planned ownership, business rules, and interactions are defined in [`DOMAIN_BOUNDARIES.md`](DOMAIN_BOUNDARIES.md).
+
 ## Documents and checks
 
 - [`assignment_1.md`](assignment_1.md): assignment brief.

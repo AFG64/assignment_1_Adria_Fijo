@@ -11,13 +11,14 @@ The two backend feature domains would be:
 1. **Restaurant collection:** create and update saved restaurants, mark them as visited or wanted, and filter by cuisine, location, price range, and rating. It owns restaurant facts and saved-list state.
 2. **Dining history:** record a visit at a saved restaurant, including date, rating, private notes, ordered items, a bill upload, and whether the user would return. It owns visit facts and references a restaurant by its ID.
 
-The restaurant collection can work without any visits. Dining history needs only a restaurant ID and a small lookup to show its name; this is the proposed seam for a later service split. Both domains must save and read their own records through SQLite.
+The restaurant collection can work without any visits. Dining history refers to a restaurant by ID; the Flask layer coordinates visit recording and rating summaries. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
 ## Decisions needed before implementation
 
 - [x] Get the specific app idea and its two backend feature domains approved by the professor (§2).
 - [x] Choose a backend stack the student can explain unaided (§1d, §6): Python and Flask.
-- [ ] Decide whether the app needs login, and define the two domains' boundary.
+- [x] Define the two domains' ownership and interaction boundary in `DOMAIN_BOUNDARIES.md`.
+- [ ] Decide whether the app needs login before exposing private notes and bills beyond local use.
 - [x] Choose the initial SQLite path and data model; recheck against implemented features later.
 
 ## Required repository contents
