@@ -13,6 +13,8 @@ The two backend feature domains would be:
 
 The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
+The student added `add_restaurant` on 2026-09-30. The home page now calls it from a form and lists saved restaurants; editing, filtering, and dining-history operations are still pending.
+
 ## Decisions needed before implementation
 
 - [x] Get the specific app idea and its two backend feature domains approved by the professor (§2).

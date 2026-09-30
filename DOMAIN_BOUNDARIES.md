@@ -1,6 +1,6 @@
 # Restaurant and dining-history feature boundaries
 
-**Status:** design for later feature work. The student-supplied schema is implemented, but business operations and routes are not. See `SCHEMA.md` for the full database diagram.
+**Status:** the student-supplied schema is implemented, and restaurant creation and listing now work through `restaurant_domain.py` and the Flask home page. The remaining collection operations and dining-history behavior are planned. See `SCHEMA.md` for the full database diagram.
 
 ## Restaurant collection
 
@@ -8,7 +8,7 @@
 
 **Owns:** `restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails`. `restaurants` holds title, category, description, location, contact details, general score and review count, price, menu, and a main image URL. `saved_restaurants` holds `want_to_go` or `visited`, the user's overall rating, personal notes, and whether they would go back. One restaurant can have at most one saved entry because `saved_restaurants.restaurant_id` is unique.
 
-**Planned operations:** create or update restaurant facts; save a restaurant; update saved status and personal assessment; list and filter saved restaurants by category, location, price, or personal rating. The personal-rating filter uses `saved_restaurants.rating`, rather than the general `restaurants.total_score` or any individual `visits.rating`.
+**Implemented operations:** `add_restaurant` creates a restaurant and its saved entry; `list_restaurants` returns saved restaurants for the home page. **Planned:** edit restaurant facts or saved details and filter by category, location, price, or personal rating. The planned personal-rating filter uses `saved_restaurants.rating`, rather than the general `restaurants.total_score` or any individual `visits.rating`.
 
 **Rules to test later:** title is required; supplied scores and personal ratings are 0–5; price is 1–4 when present; saved status is `want_to_go` or `visited`; return preference is yes/no when present. Optional fields can remain empty, as allowed by the supplied schema.
 

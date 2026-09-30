@@ -10,16 +10,16 @@ Before submission, write specific, measurable goals for the finished app. Exampl
 
 ## 2. SDLC model and actual practice
 
-The planned model is short iterative development. The first iteration is a deployable scaffold followed by the student-supplied schema; later iterations will add restaurant behavior, then visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
+The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, and connected the student's `add_restaurant` function to a form and saved list. Later iterations will add more restaurant behavior, visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
 
 ## 3. Architecture overview
 
-The current scaffold has one Flask process and one SQLite database file; bill files are planned under the same `DATA_DIR`. The domain modules and UI actions below are planned; remove or update any box that is not present in the final submission.
+The current app has one Flask process and one SQLite database file; bill files are planned under the same `DATA_DIR`. Restaurant creation and listing are implemented; dining-history behavior is planned. Recheck this diagram against the final submission.
 
 ```mermaid
 flowchart LR
     Browser[Browser] --> Flask[Flask app.py]
-    Flask --> Restaurants[Restaurant collection module — planned]
+    Flask --> Restaurants[Restaurant collection module]
     Flask --> Visits[Dining history module — planned]
     Restaurants --> SQLite[(SQLite: devops_food.sqlite3)]
     Visits --> SQLite
@@ -120,4 +120,4 @@ erDiagram
 
 ## AI disclosure statement
 
-I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, and draft an initial Flask/SQLite scaffold and document outlines, then implement the student-supplied database schema and diagram. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment” and “just build the scaffold dont one shot the whole app”, and “set up the databse schemal and use sqlite then also make a schema daigram”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, and draft documentation, which I will review and revise against the code and my own decisions before submission.
+I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, draft an initial Flask/SQLite scaffold, implement the student-supplied database schema and diagram, and connect the student's `add_restaurant` function to a simple form and list. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment”, “just build the scaffold dont one shot the whole app”, “set up the databse schemal and use sqlite then also make a schema daigram”, and “i added a function called add_restaurant( in the restaurnt domain can you wire it a simple UI thanks”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, form route, template, styling, and draft documentation, which I will review and revise against the code and my own decisions before submission.

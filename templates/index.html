@@ -4,12 +4,100 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DevOps Food</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
-    <main>
-      <h1>DevOps Food</h1>
-      <p>Restaurant discovery and dining history are planned for the next iterations.</p>
-      <p>This scaffold starts Flask and initializes its SQLite database.</p>
+    <main class="page">
+      <header class="page-header">
+        <p class="eyebrow">Personal restaurant journal</p>
+        <h1>DevOps Food</h1>
+        <p>Save places you want to try and restaurants you have visited.</p>
+      </header>
+
+      <section class="panel" aria-labelledby="add-heading">
+        <h2 id="add-heading">Add a restaurant</h2>
+
+        {% if added %}
+          <p class="message success" role="status">Restaurant saved successfully.</p>
+        {% endif %}
+        {% if error %}
+          <p class="message error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('create_restaurant') }}">
+          <div class="field">
+            <label for="title">Name <span aria-hidden="true">*</span></label>
+            <input id="title" name="title" type="text" maxlength="200" required
+                   value="{{ values.get('title', '') }}">
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="category_name">Category or cuisine</label>
+              <input id="category_name" name="category_name" type="text" maxlength="100"
+                     value="{{ values.get('category_name', '') }}">
+            </div>
+            <div class="field">
+              <label for="city">City</label>
+              <input id="city" name="city" type="text" maxlength="100"
+                     value="{{ values.get('city', '') }}">
+            </div>
+            <div class="field">
+              <label for="price">Price level</label>
+              <select id="price" name="price">
+                <option value="">Not set</option>
+                {% for level in range(1, 5) %}
+                  <option value="{{ level }}" {% if values.get('price') == level|string %}selected{% endif %}>{{ level }} / 4</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="rating">Your overall rating</label>
+              <input id="rating" name="rating" type="number" min="0" max="5" step="0.1"
+                     placeholder="0–5" value="{{ values.get('rating', '') }}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="want_to_go" {% if values.get('status', 'want_to_go') == 'want_to_go' %}selected{% endif %}>Want to go</option>
+              <option value="visited" {% if values.get('status') == 'visited' %}selected{% endif %}>Visited</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="What caught your eye?">{{ values.get('notes', '') }}</textarea>
+          </div>
+
+          <button type="submit">Save restaurant</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="saved-heading">
+        <h2 id="saved-heading">Saved restaurants</h2>
+        {% if restaurants %}
+          <ul class="restaurant-list">
+            {% for restaurant in restaurants %}
+              <li>
+                <div>
+                  <strong>{{ restaurant.title }}</strong>
+                  <p>
+                    {{ restaurant.category_name or 'Category not set' }}
+                    {% if restaurant.city %} · {{ restaurant.city }}{% endif %}
+                    {% if restaurant.price is not none %} · Price {{ restaurant.price }}/4{% endif %}
+                    {% if restaurant.rating is not none %} · Your rating {{ restaurant.rating }}/5{% endif %}
+                  </p>
+                </div>
+                <span class="status">{{ 'Visited' if restaurant.status == 'visited' else 'Want to go' }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-state">No restaurants saved yet. Add the first one above.</p>
+        {% endif %}
+      </section>
     </main>
   </body>
 </html>
