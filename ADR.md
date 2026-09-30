@@ -18,10 +18,10 @@ Decision: Treat saved restaurant facts and filtering as the restaurant collectio
 Alternatives considered: A single restaurant record with one rating, bill, and notes would be smaller, but it would lose the history of repeat visits and make the domains indistinct.
 Consequences: The split gives a clear later service boundary. Rating-based restaurant filtering will need a read-only view of visit ratings, which is a deliberate cross-domain query to isolate when that feature is built.
 
-## 3. Put restaurants, visits, orders, and bills in one SQLite file
-Date: 2026-09-29
+## 3. Implement the supplied single-user SQLite schema
+Date: 2026-09-30
 Status: Decided
-Context: The deployment contract requires SQLite at one documented path, and the app must preserve multiple visits and their ordered items. Bill uploads should not introduce another required storage service.
-Decision: Store `restaurants`, `visits`, and `ordered_items` as separate tables with foreign keys. Keep a bill's filename, media type, and bytes on its visit row; use `DATA_DIR/devops_food.sqlite3` as the only persistent file.
-Alternatives considered: Saving uploaded bills as separate files would keep the database smaller, but it would create a second persistent path and make backup and container volume setup more complicated.
-Consequences: One SQLite file is easy to run and back up, and each visit can have multiple orders. Bill size and file-type limits must be enforced before uploads are implemented so the database does not grow without bound.
+Context: The 2026-09-29 scaffold used three tables and embedded bill bytes. The student then supplied a more detailed single-user schema separating general restaurant facts, personal saved details, visits, bills, items, images, and emails.
+Decision: Implement those seven tables in `schema.sql` with foreign keys and cascade rules, using `DATA_DIR/devops_food.sqlite3` for SQLite. Keep bill file locations in `bills.image_path` as supplied, with uploaded files planned under `DATA_DIR`.
+Alternatives considered: The original three-table design would keep one persistent file, but it cannot represent separate general and personal ratings or multiple images, emails, and bill records without changing its structure.
+Consequences: The diagram now matches the student's schema and each feature domain has clear table ownership. Bill uploads will need a documented file path and backup alongside SQLite, and money stored as `REAL` may need rounding rules when payment calculations are implemented.

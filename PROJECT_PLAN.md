@@ -8,10 +8,10 @@ This file tracks the work needed for `assignment_1.md`. It is a planning aid, no
 
 The two backend feature domains would be:
 
-1. **Restaurant collection:** create and update saved restaurants, mark them as visited or wanted, and filter by cuisine, location, price range, and rating. It owns restaurant facts and saved-list state.
-2. **Dining history:** record a visit at a saved restaurant, including date, rating, private notes, ordered items, a bill upload, and whether the user would return. It owns visit facts and references a restaurant by its ID.
+1. **Restaurant collection:** create and update restaurant details and the single user's saved entry, mark it as visited or wanted, and filter by category, location, price, or personal rating. It owns `restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails`.
+2. **Dining history:** record visits at a saved restaurant, including date, rating, notes, amount spent, party size, ordered items, and bill records. It owns `visits`, `bills`, and `visit_items`.
 
-The restaurant collection can work without any visits. Dining history refers to a restaurant by ID; the Flask layer coordinates visit recording and rating summaries. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
+The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
 ## Decisions needed before implementation
 
@@ -19,7 +19,7 @@ The restaurant collection can work without any visits. Dining history refers to 
 - [x] Choose a backend stack the student can explain unaided (§1d, §6): Python and Flask.
 - [x] Define the two domains' ownership and interaction boundary in `DOMAIN_BOUNDARIES.md`.
 - [ ] Decide whether the app needs login before exposing private notes and bills beyond local use.
-- [x] Choose the initial SQLite path and data model; recheck against implemented features later.
+- [x] Implement the student-supplied seven-table SQLite schema at the documented path; recheck against implemented features later.
 
 ## Required repository contents
 

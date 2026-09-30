@@ -6,15 +6,15 @@
 
 The proposed stakeholder is a person who wants one private place to keep restaurants they plan to try and a record of visits they have made. The professor approved the restaurant discovery and dining-history idea. Restaurant collection and dining history are the two backend feature areas.
 
-Before submission, write specific, measurable goals for the finished app. Examples to evaluate and adapt: save a restaurant with cuisine, city, and price level in under one minute; retrieve a filtered list; record a visit with orders and an optional bill; keep all saved data after restart; reach at least 70% unit-test coverage of domain logic. Only claim a goal was met after checking it.
+Before submission, write specific, measurable goals for the finished app. Examples to evaluate and adapt: save a restaurant with category, city, and price in under one minute; retrieve a filtered list; record a visit with orders and an optional bill; keep all saved data after restart; reach at least 70% unit-test coverage of domain logic. Only claim a goal was met after checking it.
 
 ## 2. SDLC model and actual practice
 
-The planned model is short iterative development. The first iteration is this deployable scaffold and schema; later iterations will add restaurant behavior, then visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
+The planned model is short iterative development. The first iteration is a deployable scaffold followed by the student-supplied schema; later iterations will add restaurant behavior, then visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
 
 ## 3. Architecture overview
 
-The current scaffold has one Flask process and one SQLite file. The domain modules and UI actions below are planned; remove or update any box that is not present in the final submission.
+The current scaffold has one Flask process and one SQLite database file; bill files are planned under the same `DATA_DIR`. The domain modules and UI actions below are planned; remove or update any box that is not present in the final submission.
 
 ```mermaid
 flowchart LR
@@ -26,47 +26,93 @@ flowchart LR
     Flask --> Templates[HTML templates]
 ```
 
-The intended boundary is between restaurant facts and filtering on one side, and dated visits with orders and bills on the other. Both remain in one process and one database for Assignment 1.
+The intended boundary is between general and personal restaurant facts on one side, and dated visits with orders and bills on the other. Both remain in one process and one database for Assignment 1.
 
 ## 4. Database model
 
-This diagram matches the initial schema in `storage.py`. Recheck it against the final schema before submission.
+The student supplied the single-user schema, which is implemented in `schema.sql`. The diagram below matches the seven tables created by SQLite. `SCHEMA.md` explains the columns and relationships in more detail.
 
 ```mermaid
 erDiagram
-    restaurants ||--o{ visits : has
-    visits ||--o{ ordered_items : contains
+    restaurants ||--o| saved_restaurants : "saved once"
+    saved_restaurants ||--o{ visits : "has visits"
+    visits ||--o{ bills : "has bills"
+    visits ||--o{ visit_items : "includes items"
+    restaurants ||--o{ restaurant_images : "has images"
+    restaurants ||--o{ restaurant_emails : "has emails"
+
     restaurants {
         INTEGER id PK
-        TEXT name
-        TEXT cuisine
+        TEXT title
+        TEXT category_name
+        TEXT description
+        TEXT address
+        TEXT street
         TEXT city
-        INTEGER price_level
-        TEXT saved_status
-        TEXT created_at
+        TEXT postal_code
+        TEXT state
+        TEXT country_code
+        REAL latitude
+        REAL longitude
+        TEXT phone
+        TEXT website
+        REAL total_score
+        INTEGER reviews_count
+        INTEGER price
+        TEXT menu
+        TEXT image_url
+        DATETIME created_at
+    }
+    saved_restaurants {
+        INTEGER id PK
+        INTEGER restaurant_id FK
+        TEXT status
+        REAL rating
+        TEXT notes
+        INTEGER would_go_back
+        DATETIME saved_at
     }
     visits {
         INTEGER id PK
-        INTEGER restaurant_id FK
-        TEXT visit_date
-        INTEGER rating
+        INTEGER saved_restaurant_id FK
+        DATE visit_date
+        REAL rating
         TEXT notes
-        INTEGER would_return
-        TEXT bill_filename
-        TEXT bill_mime
-        BLOB bill_data
-        TEXT created_at
+        REAL total_amount
+        INTEGER number_of_people
+        INTEGER would_go_back
+        DATETIME created_at
     }
-    ordered_items {
+    bills {
         INTEGER id PK
         INTEGER visit_id FK
-        TEXT name
+        TEXT image_path
+        REAL extracted_total
+        TEXT extracted_text
+        DATETIME uploaded_at
+    }
+    visit_items {
+        INTEGER id PK
+        INTEGER visit_id FK
+        TEXT item_name
         INTEGER quantity
-        INTEGER unit_price_cents
+        REAL unit_price
+        REAL rating
+        TEXT notes
+    }
+    restaurant_images {
+        INTEGER id PK
+        INTEGER restaurant_id FK
+        TEXT image_url
+    }
+    restaurant_emails {
+        INTEGER id PK
+        INTEGER restaurant_id FK
+        TEXT email
     }
 ```
 
-`visits.restaurant_id` points to one saved restaurant; `ordered_items.visit_id` points to one visit. The bill is stored on the visit row, so the app needs no second persistent path. The schema uses checks for price level, status, rating, return choice, quantity, and nonnegative price.
+`restaurants` contains general details. `saved_restaurants` contains the one user's personal status, overall rating, notes, and return preference; its `restaurant_id` is unique. Each saved entry can have several visits, and each visit can have several bills and ordered items. Foreign keys use cascading deletion. There is no `users` table. Bill image files are planned under `DATA_DIR`, and their locations will be stored in `bills.image_path` when uploads are implemented.
 
 ## 5. Testing, deployment contract, and reflection
 
@@ -74,4 +120,4 @@ erDiagram
 
 ## AI disclosure statement
 
-I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, and draft an initial Flask/SQLite scaffold and document outlines. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment” and “just build the scaffold dont one shot the whole app”. The output of these prompts was used to create the initial project structure and draft documentation, which I will review and revise against the code and my own decisions before submission.
+I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, and draft an initial Flask/SQLite scaffold and document outlines, then implement the student-supplied database schema and diagram. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment” and “just build the scaffold dont one shot the whole app”, and “set up the databse schemal and use sqlite then also make a schema daigram”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, and draft documentation, which I will review and revise against the code and my own decisions before submission.
