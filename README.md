@@ -28,9 +28,9 @@ python app.py
 
 Use the **+** button beside **DevOps Food** to open the add form. It asks for a restaurant name and optional category, city, price level, personal rating, notes, and saved status. On other pages, the + button returns to the home page with the form open. After saving, the new restaurant appears in the saved list. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Its status label distinguishes saved places from unsaved ones. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
 
-Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. It shows available restaurant facts and, when the restaurant is saved, its personal status, rating, notes, and return preference. Missing IDs return a 404 page. The detail page uses the student's `get_restaurant_details` function; visit history is not shown yet.
+Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. It shows available restaurant facts and, when the restaurant is saved, its personal status, rating, notes, return preference, and visit history. Use **Record a visit** to enter a date, optional visit rating, and notes. Recording a visit marks the saved restaurant as Visited. Each visit has an **Attach a bill** control for a PNG, JPEG, or PDF file up to 5 MB, followed by a download link. Visits and bills use the student's `add_visit` and `add_bill` functions. Missing restaurant IDs return a 404 page.
 
-The add form calls the student's `add_restaurant` function in `backend/restaurant_domain.py`. The saved list's **Remove** button calls the student's `remove_restaurant` function after a confirmation prompt. It removes the `saved_restaurants` row, while keeping the restaurant in the full catalog. Any visits, bill records, and items linked to that saved entry are deleted by SQLite's cascading foreign keys. There is no way to restore them in the app. Visit recording and editing restaurants are not available yet. There is no login, so notes are not access-controlled.
+The add form calls the student's `add_restaurant` function in `backend/restaurant_domain.py`. The saved list's **Remove** button calls the student's `remove_restaurant` function after a confirmation prompt. It removes the `saved_restaurants` row, while keeping the restaurant in the full catalog. Any visits, bill records, and items linked to that saved entry are deleted by SQLite's cascading foreign keys; managed bill files are also removed. There is no way to restore them in the app. Editing restaurants and recording ordered items are not available yet. There is no login, so notes and bills are not access-controlled.
 
 If you created a database with the earlier three-table scaffold, choose a new empty `DATA_DIR` or migrate the old data. Startup reports the incompatible schema instead of altering it silently.
 
@@ -47,6 +47,8 @@ app.py                       Starts the one Flask process
 backend/
   web.py                     Flask routes and app setup
   restaurant_domain.py       Restaurant business logic and catalog queries
+  dining_history.py         Visit and bill database operations
+  bill_files.py             Bill upload validation and file storage
 database/
   __init__.py                SQLite path, connections, and initialization
   schema.sql                 Table definitions and relationships
@@ -63,9 +65,9 @@ The root `app.py` is the start command. `backend/web.py` handles requests, calls
 ## Planned feature boundaries
 
 - **Restaurant collection:** adding, saving an existing catalog row with a status, listing saved places, listing all catalog rows, viewing a restaurant's details, and removing a saved entry are implemented. The schema also supports the single user's overall rating, notes, and return preference; editing and filters are planned.
-- **Dining history:** record dated visits with a visit rating, notes, spend, party size, items ordered, and bills.
+- **Dining history:** recording and listing dated visits with optional rating and notes, and attaching and downloading bill files are implemented. Spend, party size, ordered items, and bill extraction remain planned.
 
-`restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails` belong to the collection; `visits`, `bills`, and `visit_items` belong to dining history. A visit refers to a saved restaurant by ID. The final behavior, validation, and upload rules are still pending. Bill files are planned under `DATA_DIR`, with their path stored in SQLite; uploads are not implemented yet.
+`restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails` belong to the collection; `visits`, `bills`, and `visit_items` belong to dining history. A visit refers to a saved restaurant by ID. Bill files are stored in `DATA_DIR/bills/` with generated filenames; `bills.image_path` stores their relative paths in SQLite. The app checks the file signature and size before storing an upload. The bill download route checks that the bill belongs to the restaurant's visit. Keep `DATA_DIR` private because the app has no login.
 
 The planned ownership, business rules, and interactions are defined in [`docs/DOMAIN_BOUNDARIES.md`](docs/DOMAIN_BOUNDARIES.md).
 
@@ -81,7 +83,7 @@ The planned ownership, business rules, and interactions are defined in [`docs/DO
 The required core-logic tests and measured coverage do not exist yet. The intended command, once those tests are added, is:
 
 ```sh
-python -m pytest --cov=backend.restaurant_domain --cov=backend.visit_domain --cov-report=term-missing
+python -m pytest --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing
 ```
 
 Do not report a coverage percentage until the command has been run on implemented domain logic.
