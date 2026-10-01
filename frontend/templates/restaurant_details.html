@@ -53,4 +53,80 @@
       {% endif %}
     </div>
   </section>
+
+  <section class="panel" id="visits" aria-labelledby="visits-heading">
+    <div class="section-heading">
+      <h2 id="visits-heading">Dining history</h2>
+      {% if restaurant.saved_id is not none %}<span class="count-label">{{ visits|length }} visit{% if visits|length != 1 %}s{% endif %}</span>{% endif %}
+    </div>
+
+    {% if restaurant.saved_id is none %}
+      <p class="detail-muted">Save this restaurant from All restaurants before recording a visit.</p>
+    {% else %}
+      {% if visit_added %}<p class="message success" role="status">Visit recorded.</p>{% endif %}
+      {% if bill_added %}<p class="message success" role="status">Bill attached to your visit.</p>{% endif %}
+
+      <details class="visit-composer" {% if visit_error %}open{% endif %}>
+        <summary>Record a visit</summary>
+        {% if visit_error %}<p class="message error" role="alert">{{ visit_error }}</p>{% endif %}
+        <form method="post" action="{{ url_for('create_visit', restaurant_id=restaurant.id) }}">
+          <div class="field-grid">
+            <div class="field">
+              <label for="visit_date">Visit date</label>
+              <input id="visit_date" name="visit_date" type="date" max="{{ today }}" required
+                     value="{{ visit_values.get('visit_date', today) }}">
+            </div>
+            <div class="field">
+              <label for="visit_rating">Your rating for this visit</label>
+              <input id="visit_rating" name="rating" type="number" min="0" max="5" step="0.1"
+                     placeholder="0–5" value="{{ visit_values.get('rating', '') }}">
+            </div>
+          </div>
+          <div class="field">
+            <label for="visit_notes">Visit notes</label>
+            <textarea id="visit_notes" name="notes" rows="3" maxlength="2000"
+                      placeholder="What did you enjoy or order?">{{ visit_values.get('notes', '') }}</textarea>
+          </div>
+          <button type="submit">Save visit</button>
+        </form>
+      </details>
+
+      {% if visits %}
+        <ol class="visit-list">
+          {% for visit in visits %}
+            <li id="visit-{{ visit.id }}">
+              <div class="visit-heading">
+                <h3>{{ visit.visit_date }}</h3>
+                {% if visit.rating is not none %}<span class="status">{{ visit.rating }}/5</span>{% endif %}
+              </div>
+              {% if visit.notes %}<p class="visit-notes">{{ visit.notes }}</p>{% endif %}
+              {% if visit.bills %}
+                <ul class="bill-list">
+                  {% for bill in visit.bills %}
+                    <li><a href="{{ url_for('download_bill', restaurant_id=restaurant.id, visit_id=visit.id, bill_id=bill.id) }}">Download bill {{ loop.index }}</a></li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              <details class="bill-composer" {% if bill_error_visit_id == visit.id %}open{% endif %}>
+                <summary>Attach a bill</summary>
+                {% if bill_error_visit_id == visit.id %}<p class="message error" role="alert">{{ bill_error }}</p>{% endif %}
+                <form method="post" enctype="multipart/form-data"
+                      action="{{ url_for('upload_bill', restaurant_id=restaurant.id, visit_id=visit.id) }}">
+                  <div class="field">
+                    <label for="bill_file_{{ visit.id }}">Bill image or PDF</label>
+                    <input id="bill_file_{{ visit.id }}" name="bill_file" type="file"
+                           accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf" required>
+                    <small>PNG, JPEG, or PDF; up to 5 MB.</small>
+                  </div>
+                  <button type="submit">Upload bill</button>
+                </form>
+              </details>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="detail-muted">No visits recorded yet.</p>
+      {% endif %}
+    {% endif %}
+  </section>
 {% endblock %}

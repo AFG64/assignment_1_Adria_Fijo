@@ -76,6 +76,22 @@ button:hover { background: #245f39; }
 .detail-section p { margin: 0; white-space: pre-wrap; line-height: 1.5; }
 .detail-muted { color: #637166; }
 .personal-notes { color: #34483b; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.section-heading h2 { margin-bottom: 14px; }
+.count-label { color: #637166; font-size: .9rem; }
+.visit-composer { margin: 16px 0 22px; }
+.visit-composer summary, .bill-composer summary { width: fit-content; color: #315840; font-weight: 700; cursor: pointer; }
+.visit-composer summary:focus-visible, .bill-composer summary:focus-visible { outline: 2px solid #317249; outline-offset: 3px; }
+.visit-composer form, .bill-composer form { margin-top: 16px; }
+.visit-list { margin: 0; padding: 0; list-style: none; }
+.visit-list > li { padding: 20px 0; border-top: 1px solid #e5ebe4; }
+.visit-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.visit-heading h3 { margin: 0; font-size: 1.05rem; }
+.visit-notes { margin: 10px 0; white-space: pre-wrap; }
+.bill-list { margin: 12px 0; padding-left: 20px; }
+.bill-list a { color: #315840; }
+.bill-composer { margin-top: 12px; }
+.bill-composer small { color: #637166; }
 
 @media (max-width: 560px) {
   .page { padding: 28px 16px 56px; }

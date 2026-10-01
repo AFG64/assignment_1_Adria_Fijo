@@ -19,6 +19,8 @@ On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists
 
 The add form now opens from the + control beside the app title. A validation error keeps it open with the entered values; the saved-list page remains visible when the form is closed.
 
+The student added `add_visit` and `add_bill` in `backend/dining_history.py` on 2026-10-01. The restaurant detail page now records and lists visits, accepts bill uploads for each visit, and provides downloads. The UI validates dates, ratings, and uploaded files; ordered items, spend, and party size remain planned.
+
 ## Decisions needed before implementation
 
 - [x] Get the specific app idea and its two backend feature domains approved by the professor (§2).
