@@ -26,7 +26,9 @@ python app.py
 
 `GET /health` returns `{"status":"ok"}`. The process binds to `0.0.0.0` and uses `PORT` (default `8000`). Set `DATA_DIR` to change the directory containing `devops_food.sqlite3`; the default is `./data/devops_food.sqlite3`, relative to the directory where you start the app. The database is initialized on startup without a manual migration step. No external service is required. The schema is in [`database/schema.sql`](database/schema.sql) and its diagram is in [`docs/SCHEMA.md`](docs/SCHEMA.md).
 
-The home page lets you add a restaurant with a name, optional category, city, price level, personal rating, notes, and saved status. After saving, it appears in the saved list below the form. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Its status label distinguishes saved places from unsaved ones. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
+Use the **+** button beside **DevOps Food** to open the add form. It asks for a restaurant name and optional category, city, price level, personal rating, notes, and saved status. On other pages, the + button returns to the home page with the form open. After saving, the new restaurant appears in the saved list. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Its status label distinguishes saved places from unsaved ones. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
+
+Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. It shows available restaurant facts and, when the restaurant is saved, its personal status, rating, notes, and return preference. Missing IDs return a 404 page. The detail page uses the student's `get_restaurant_details` function; visit history is not shown yet.
 
 The add form calls the student's `add_restaurant` function in `backend/restaurant_domain.py`. The saved list's **Remove** button calls the student's `remove_restaurant` function after a confirmation prompt. It removes the `saved_restaurants` row, while keeping the restaurant in the full catalog. Any visits, bill records, and items linked to that saved entry are deleted by SQLite's cascading foreign keys. There is no way to restore them in the app. Visit recording and editing restaurants are not available yet. There is no login, so notes are not access-controlled.
 
@@ -49,8 +51,8 @@ database/
   __init__.py                SQLite path, connections, and initialization
   schema.sql                 Table definitions and relationships
 frontend/
-  templates/                  Shared layout, saved list, and full catalog pages
-  static/style.css           Page styling
+  templates/                  Shared layout, saved list, full catalog, and detail pages
+  static/                    Page styling and add-form interaction
 docs/                         Plan, domain boundaries, schema diagram, and report draft
 ADR.md, AI_USAGE.md           Required process logs at the repository root
 requirements.txt             The only dependency manifest
@@ -60,7 +62,7 @@ The root `app.py` is the start command. `backend/web.py` handles requests, calls
 
 ## Planned feature boundaries
 
-- **Restaurant collection:** adding, saving an existing catalog row with a status, listing saved places, listing all catalog rows, and removing a saved entry are implemented. The schema also supports the single user's overall rating, notes, and return preference; editing and filters are planned.
+- **Restaurant collection:** adding, saving an existing catalog row with a status, listing saved places, listing all catalog rows, viewing a restaurant's details, and removing a saved entry are implemented. The schema also supports the single user's overall rating, notes, and return preference; editing and filters are planned.
 - **Dining history:** record dated visits with a visit rating, notes, spend, party size, items ordered, and bills.
 
 `restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails` belong to the collection; `visits`, `bills`, and `visit_items` belong to dining history. A visit refers to a saved restaurant by ID. The final behavior, validation, and upload rules are still pending. Bill files are planned under `DATA_DIR`, with their path stored in SQLite; uploads are not implemented yet.

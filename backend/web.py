@@ -9,6 +9,7 @@ from database import database_path, initialize_database
 
 from .restaurant_domain import (
     add_restaurant,
+    get_restaurant_details,
     list_all_restaurants,
     list_saved_restaurants,
     remove_restaurant,
@@ -73,6 +74,13 @@ def create_app():
             saved=request.args.get("saved"),
             error=None,
         )
+
+    @app.get("/restaurants/<int:restaurant_id>")
+    def restaurant_details(restaurant_id):
+        restaurant = get_restaurant_details(app.config["DATABASE_PATH"], restaurant_id)
+        if restaurant is None:
+            abort(404, description="Restaurant not found.")
+        return render_template("restaurant_details.html", restaurant=restaurant)
 
     @app.post("/restaurants/<int:restaurant_id>/save")
     def save_restaurant(restaurant_id):

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ restaurant.title }} · DevOps Food{% endblock %}
+{% block intro %}Details for a restaurant in your catalog.{% endblock %}
+{% block content %}
+  <p class="back-link"><a href="{{ url_for('all_restaurants') }}">← All restaurants</a></p>
+
+  <section class="panel" aria-labelledby="restaurant-heading">
+    <div class="detail-heading">
+      <div>
+        <p class="detail-eyebrow">Restaurant</p>
+        <h2 id="restaurant-heading">{{ restaurant.title }}</h2>
+      </div>
+      {% if restaurant.saved_id is not none %}
+        <span class="status">{{ 'Visited' if restaurant.saved_status == 'visited' else 'Want to go' }}</span>
+      {% else %}
+        <span class="status unsaved">Not saved</span>
+      {% endif %}
+    </div>
+
+    {% if restaurant.description %}<p class="detail-description">{{ restaurant.description }}</p>{% endif %}
+
+    <dl class="detail-grid">
+      {% if restaurant.category_name %}<div><dt>Category or cuisine</dt><dd>{{ restaurant.category_name }}</dd></div>{% endif %}
+      {% if restaurant.city %}<div><dt>City</dt><dd>{{ restaurant.city }}</dd></div>{% endif %}
+      {% if restaurant.address or restaurant.street %}<div><dt>Address</dt><dd>{{ restaurant.address or restaurant.street }}</dd></div>{% endif %}
+      {% if restaurant.postal_code %}<div><dt>Postal code</dt><dd>{{ restaurant.postal_code }}</dd></div>{% endif %}
+      {% if restaurant.state %}<div><dt>State or region</dt><dd>{{ restaurant.state }}</dd></div>{% endif %}
+      {% if restaurant.country_code %}<div><dt>Country</dt><dd>{{ restaurant.country_code }}</dd></div>{% endif %}
+      {% if restaurant.price is not none %}<div><dt>Price level</dt><dd>{{ restaurant.price }}/4</dd></div>{% endif %}
+      {% if restaurant.total_score is not none %}<div><dt>General score</dt><dd>{{ restaurant.total_score }}/5</dd></div>{% endif %}
+      {% if restaurant.reviews_count %}<div><dt>Reviews</dt><dd>{{ restaurant.reviews_count }}</dd></div>{% endif %}
+      {% if restaurant.phone %}<div><dt>Phone</dt><dd>{{ restaurant.phone }}</dd></div>{% endif %}
+      {% if restaurant.website %}<div><dt>Website</dt><dd>{{ restaurant.website }}</dd></div>{% endif %}
+    </dl>
+
+    {% if restaurant.menu %}
+      <div class="detail-section">
+        <h3>Menu</h3>
+        <p>{{ restaurant.menu }}</p>
+      </div>
+    {% endif %}
+
+    <div class="detail-section">
+      <h3>Your saved details</h3>
+      {% if restaurant.saved_id is not none %}
+        <dl class="detail-grid">
+          {% if restaurant.personal_rating is not none %}<div><dt>Your rating</dt><dd>{{ restaurant.personal_rating }}/5</dd></div>{% endif %}
+          {% if restaurant.would_go_back is not none %}<div><dt>Would go back</dt><dd>{{ 'Yes' if restaurant.would_go_back else 'No' }}</dd></div>{% endif %}
+        </dl>
+        {% if restaurant.personal_notes %}<p class="personal-notes">{{ restaurant.personal_notes }}</p>{% else %}<p class="detail-muted">No personal notes yet.</p>{% endif %}
+      {% else %}
+        <p class="detail-muted">This restaurant is not in your saved list. You can save it from All restaurants.</p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

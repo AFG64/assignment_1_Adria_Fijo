@@ -112,7 +112,7 @@ def remove_restaurant(database_path, saved_restaurant_id: int) -> None:
 
 def save_existing_restaurant(database_path, restaurant_id, status="want_to_go"):
     "save restaurant to the personal list and makr wanted to go or visited"
-    
+
     if not restaurant_id:
         raise ValueError("Restaurant ID is required.")
 
@@ -128,3 +128,31 @@ def save_existing_restaurant(database_path, restaurant_id, status="want_to_go"):
             (restaurant_id, status),
         )
 
+
+
+def get_restaurant_details(database_path, restaurant_id):
+
+    "get the details from exisitng restaurant"
+
+    if not restaurant_id:
+            raise ValueError("Restaurant ID is required.")
+
+    with connect_database(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+        row = connection.execute(
+            """SELECT r.*,
+                   s.id AS saved_id,
+                   s.status AS saved_status,
+                   s.rating AS personal_rating,
+                   s.notes AS personal_notes,
+                   s.would_go_back,
+                   s.saved_at
+            FROM restaurants AS r
+            LEFT JOIN saved_restaurants AS s
+                ON s.restaurant_id = r.id
+            WHERE r.id = ?
+            """,
+            (restaurant_id,),
+        ).fetchone()
+
+    return dict(row) if row else None

@@ -15,6 +15,10 @@ The restaurant collection can work without any visits. Dining history refers to 
 
 The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited; editing, filtering, and dining-history operations are still pending.
 
+On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists now link to a detail page backed by that function. The page displays general facts and any saved details; visit history is still pending.
+
+The add form now opens from the + control beside the app title. A validation error keeps it open with the entered values; the saved-list page remains visible when the form is closed.
+
 ## Decisions needed before implementation
 
 - [x] Get the specific app idea and its two backend feature domains approved by the professor (§2).

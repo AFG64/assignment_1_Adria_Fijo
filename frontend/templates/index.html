@@ -1,17 +1,25 @@
 {% extends "base.html" %}
+{% set form_open = error or request.args.get('add') == '1' %}
+{% block header_action %}
+  <button class="add-toggle" id="add-restaurant-toggle" type="button"
+          aria-label="{{ 'Close add restaurant form' if form_open else 'Add a restaurant' }}"
+          title="{{ 'Close add restaurant form' if form_open else 'Add a restaurant' }}" aria-controls="add-restaurant-panel"
+          aria-expanded="{{ 'true' if form_open else 'false' }}">
+    <span class="add-toggle-icon" aria-hidden="true">{{ '×' if form_open else '+' }}</span>
+  </button>
+{% endblock %}
 {% block content %}
+      {% if added %}
+        <p class="message success" role="status">Restaurant saved successfully.</p>
+      {% endif %}
+      {% if removed %}
+        <p class="message success" role="status">Removed from your saved list. The restaurant is still in <a href="{{ url_for('all_restaurants') }}">All restaurants</a>.</p>
+      {% endif %}
 
-      <section class="panel" aria-labelledby="add-heading">
+      <section class="panel add-panel" id="add-restaurant-panel" aria-labelledby="add-heading" {% if not form_open %}hidden{% endif %}>
         <h2 id="add-heading">Add a restaurant</h2>
-
-        {% if added %}
-          <p class="message success" role="status">Restaurant saved successfully.</p>
-        {% endif %}
-        {% if removed %}
-          <p class="message success" role="status">Removed from your saved list. The restaurant is still in <a href="{{ url_for('all_restaurants') }}">All restaurants</a>.</p>
-        {% endif %}
         {% if error %}
-          <p class="message error" role="alert">{{ error }}</p>
+          <p class="message error" id="add-form-error" role="alert" tabindex="-1">{{ error }}</p>
         {% endif %}
 
         <form method="post" action="{{ url_for('create_restaurant') }}">
@@ -61,7 +69,10 @@
             <textarea id="notes" name="notes" rows="3" placeholder="What caught your eye?">{{ values.get('notes', '') }}</textarea>
           </div>
 
-          <button type="submit">Save restaurant</button>
+          <div class="form-actions">
+            <button type="submit">Save restaurant</button>
+            <button type="button" class="secondary-button" id="cancel-add-restaurant">Cancel</button>
+          </div>
         </form>
       </section>
 
@@ -71,7 +82,7 @@
           <ul class="restaurant-list">
             {% for restaurant in restaurants %}
               <li>
-                <div>
+                <a class="restaurant-card-link" href="{{ url_for('restaurant_details', restaurant_id=restaurant.id) }}" aria-label="View details for {{ restaurant.title }}">
                   <strong>{{ restaurant.title }}</strong>
                   <p>
                     {{ restaurant.category_name or 'Category not set' }}
@@ -79,7 +90,7 @@
                     {% if restaurant.price is not none %} · Price {{ restaurant.price }}/4{% endif %}
                     {% if restaurant.rating is not none %} · Your rating {{ restaurant.rating }}/5{% endif %}
                   </p>
-                </div>
+                </a>
                 <div class="restaurant-actions">
                   <span class="status">{{ 'Visited' if restaurant.status == 'visited' else 'Want to go' }}</span>
                   <form method="post"
@@ -92,7 +103,10 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="empty-state">No restaurants saved yet. Add the first one above.</p>
+          <p class="empty-state">No restaurants saved yet. Use the + button beside the title to add one.</p>
         {% endif %}
       </section>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='add_form.js') }}" defer></script>
 {% endblock %}

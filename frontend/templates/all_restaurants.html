@@ -11,7 +11,7 @@
       <ul class="restaurant-list">
         {% for restaurant in restaurants %}
           <li>
-            <div>
+            <a class="restaurant-card-link" href="{{ url_for('restaurant_details', restaurant_id=restaurant.id) }}" aria-label="View details for {{ restaurant.title }}">
               <strong>{{ restaurant.title }}</strong>
               <p>
                 {{ restaurant.category_name or 'Category not set' }}
@@ -20,7 +20,7 @@
                 {% if restaurant.total_score is not none %} · General score {{ restaurant.total_score }}/5{% endif %}
                 {% if restaurant.personal_rating is not none %} · Your rating {{ restaurant.personal_rating }}/5{% endif %}
               </p>
-            </div>
+            </a>
             {% if restaurant.saved_id is not none %}
               <span class="status">{{ 'Visited' if restaurant.saved_status == 'visited' else 'Want to go' }}</span>
             {% else %}

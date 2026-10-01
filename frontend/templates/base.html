@@ -10,7 +10,12 @@
     <main class="page">
       <header class="page-header">
         <p class="eyebrow">Personal restaurant journal</p>
-        <h1>DevOps Food</h1>
+        <div class="page-title-row">
+          <h1>DevOps Food</h1>
+          {% block header_action %}
+            <a class="add-toggle" href="{{ url_for('home', add=1) }}" aria-label="Add a restaurant" title="Add a restaurant"><span aria-hidden="true">+</span></a>
+          {% endblock %}
+        </div>
         <p>{% block intro %}Save places you want to try and restaurants you have visited.{% endblock %}</p>
         <nav class="page-nav" aria-label="Restaurant pages">
           <a href="{{ url_for('home') }}" {% if request.endpoint == 'home' %}aria-current="page"{% endif %}>Saved restaurants</a>
@@ -19,5 +24,6 @@
       </header>
       {% block content %}{% endblock %}
     </main>
+    {% block scripts %}{% endblock %}
   </body>
 </html>
