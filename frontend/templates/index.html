@@ -1,24 +1,14 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DevOps Food</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body>
-    <main class="page">
-      <header class="page-header">
-        <p class="eyebrow">Personal restaurant journal</p>
-        <h1>DevOps Food</h1>
-        <p>Save places you want to try and restaurants you have visited.</p>
-      </header>
+{% extends "base.html" %}
+{% block content %}
 
       <section class="panel" aria-labelledby="add-heading">
         <h2 id="add-heading">Add a restaurant</h2>
 
         {% if added %}
           <p class="message success" role="status">Restaurant saved successfully.</p>
+        {% endif %}
+        {% if removed %}
+          <p class="message success" role="status">Removed from your saved list. The restaurant is still in <a href="{{ url_for('all_restaurants') }}">All restaurants</a>.</p>
         {% endif %}
         {% if error %}
           <p class="message error" role="alert">{{ error }}</p>
@@ -90,7 +80,14 @@
                     {% if restaurant.rating is not none %} · Your rating {{ restaurant.rating }}/5{% endif %}
                   </p>
                 </div>
-                <span class="status">{{ 'Visited' if restaurant.status == 'visited' else 'Want to go' }}</span>
+                <div class="restaurant-actions">
+                  <span class="status">{{ 'Visited' if restaurant.status == 'visited' else 'Want to go' }}</span>
+                  <form method="post"
+                        action="{{ url_for('remove_saved_restaurant', saved_id=restaurant.saved_id) }}"
+                        onsubmit="return confirm('Remove this place from your saved list? Its visit, bill, and item records will also be removed. The restaurant stays in All restaurants.');">
+                    <button type="submit" class="remove-button" aria-label="Remove {{ restaurant.title }} from saved list">Remove</button>
+                  </form>
+                </div>
               </li>
             {% endfor %}
           </ul>
@@ -98,6 +95,4 @@
           <p class="empty-state">No restaurants saved yet. Add the first one above.</p>
         {% endif %}
       </section>
-    </main>
-  </body>
-</html>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}All restaurants · DevOps Food{% endblock %}
+{% block intro %}Every restaurant in the catalog, whether saved or not.{% endblock %}
+{% block content %}
+  <section class="panel" aria-labelledby="all-heading">
+    <h2 id="all-heading">All restaurants</h2>
+    {% if saved %}<p class="message success" role="status">Restaurant added to your saved list.</p>{% endif %}
+    {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
+    {% if restaurants %}
+      <p class="list-summary">{{ restaurants|length }} restaurant{% if restaurants|length != 1 %}s{% endif %} in the catalog</p>
+      <ul class="restaurant-list">
+        {% for restaurant in restaurants %}
+          <li>
+            <div>
+              <strong>{{ restaurant.title }}</strong>
+              <p>
+                {{ restaurant.category_name or 'Category not set' }}
+                {% if restaurant.city %} · {{ restaurant.city }}{% endif %}
+                {% if restaurant.price is not none %} · Price {{ restaurant.price }}/4{% endif %}
+                {% if restaurant.total_score is not none %} · General score {{ restaurant.total_score }}/5{% endif %}
+                {% if restaurant.personal_rating is not none %} · Your rating {{ restaurant.personal_rating }}/5{% endif %}
+              </p>
+            </div>
+            {% if restaurant.saved_id is not none %}
+              <span class="status">{{ 'Visited' if restaurant.saved_status == 'visited' else 'Want to go' }}</span>
+            {% else %}
+              <div class="catalog-actions">
+                <span class="status unsaved">Not saved</span>
+                <details class="save-choice">
+                  <summary>Save restaurant</summary>
+                  <form method="post" action="{{ url_for('save_restaurant', restaurant_id=restaurant.id) }}">
+                    <fieldset>
+                      <legend>Have you visited this restaurant?</legend>
+                      <label><input type="radio" name="status" value="want_to_go" required> Want to go</label>
+                      <label><input type="radio" name="status" value="visited" required> Visited already</label>
+                    </fieldset>
+                    <button type="submit">Add to saved list</button>
+                  </form>
+                </details>
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">No restaurants are in the catalog yet. Add one from the saved restaurants page.</p>
+    {% endif %}
+  </section>
+{% endblock %}

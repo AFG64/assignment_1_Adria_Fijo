@@ -13,6 +13,9 @@ body { margin: 0; }
 .page-header h1 { margin: 0 0 8px; font-size: 2.5rem; }
 .page-header p { margin: 0; color: #58665d; }
 .eyebrow { margin-bottom: 8px !important; color: #317249 !important; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.page-nav a { padding: 8px 12px; border-radius: 8px; color: #315840; text-decoration: none; font-weight: 650; }
+.page-nav a:hover, .page-nav a[aria-current="page"] { background: #e3eee1; }
 
 .panel { margin-top: 20px; padding: 28px; border: 1px solid #dce4da; border-radius: 14px; background: white; }
 .panel h2 { margin: 0 0 20px; font-size: 1.3rem; }
@@ -32,6 +35,21 @@ button:hover { background: #245f39; }
 .restaurant-list li:first-child { border-top: 0; }
 .restaurant-list p, .empty-state { margin: 5px 0 0; color: #637166; }
 .status { flex: none; align-self: start; padding: 5px 9px; border-radius: 100px; background: #eaf1e8; color: #315840; font-size: .8rem; font-weight: 650; }
+.status.unsaved { background: #f0f0ed; color: #626c64; }
+.catalog-actions { display: flex; flex: none; align-items: flex-start; flex-direction: column; gap: 8px; }
+.save-choice summary { display: inline-block; padding: 7px 11px; border-radius: 8px; background: #2f7548; color: white; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.save-choice summary:hover { background: #245f39; }
+.save-choice[open] { min-width: 210px; }
+.save-choice form { margin-top: 12px; }
+.save-choice fieldset { margin: 0 0 12px; padding: 0; border: 0; }
+.save-choice legend { margin-bottom: 8px; font-size: .9rem; font-weight: 650; }
+.save-choice label { display: block; margin: 7px 0; font-weight: 400; }
+.save-choice input { width: auto; margin: 0 6px 0 0; }
+.save-choice button { padding: 8px 11px; font-size: .85rem; }
+.list-summary { margin: -6px 0 18px; color: #637166; }
+.restaurant-actions { display: flex; flex: none; align-items: flex-start; gap: 8px; }
+.remove-button { padding: 4px 9px; border: 1px solid #d8a8a1; background: white; color: #9b3d32; font-size: .8rem; }
+.remove-button:hover { background: #fff0ed; }
 
 @media (max-width: 560px) {
   .page { padding: 28px 16px 56px; }

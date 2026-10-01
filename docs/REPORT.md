@@ -10,15 +10,15 @@ Before submission, write specific, measurable goals for the finished app. Exampl
 
 ## 2. SDLC model and actual practice
 
-The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, and connected the student's `add_restaurant` function to a form and saved list. Later iterations will add more restaurant behavior, visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
+The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, connected the student's `add_restaurant` and `remove_restaurant` functions to the saved-list page, added a separate full-catalog page, and connected the student's `save_existing_restaurant` function to that page with a status choice. Later iterations will add more restaurant behavior, visit behavior and uploads, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
 
 ## 3. Architecture overview
 
-The current app has one Flask process and one SQLite database file; bill files are planned under the same `DATA_DIR`. Restaurant creation and listing are implemented; dining-history behavior is planned. Recheck this diagram against the final submission.
+The current app has one Flask process and one SQLite database file; bill files are planned under the same `DATA_DIR`. Restaurant creation, saving an existing catalog row, saved-list removal, and separate saved and full-catalog views are implemented; dining-history behavior is planned. Recheck this diagram against the final submission.
 
 ```mermaid
 flowchart LR
-    Browser[Browser] --> Flask[Flask app.py]
+    Browser[Browser] --> Flask[Flask backend/web.py]
     Flask --> Restaurants[Restaurant collection module]
     Flask --> Visits[Dining history module — planned]
     Restaurants --> SQLite[(SQLite: devops_food.sqlite3)]
@@ -30,7 +30,7 @@ The intended boundary is between general and personal restaurant facts on one si
 
 ## 4. Database model
 
-The student supplied the single-user schema, which is implemented in `schema.sql`. The diagram below matches the seven tables created by SQLite. `SCHEMA.md` explains the columns and relationships in more detail.
+The student supplied the single-user schema, which is implemented in `database/schema.sql`. The diagram below matches the seven tables created by SQLite. `SCHEMA.md` explains the columns and relationships in more detail.
 
 ```mermaid
 erDiagram
@@ -120,4 +120,4 @@ erDiagram
 
 ## AI disclosure statement
 
-I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, draft an initial Flask/SQLite scaffold, implement the student-supplied database schema and diagram, and connect the student's `add_restaurant` function to a simple form and list. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment”, “just build the scaffold dont one shot the whole app”, “set up the databse schemal and use sqlite then also make a schema daigram”, and “i added a function called add_restaurant( in the restaurnt domain can you wire it a simple UI thanks”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, form route, template, styling, and draft documentation, which I will review and revise against the code and my own decisions before submission.
+I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, draft an initial Flask/SQLite scaffold, implement the student-supplied database schema and diagram, and connect the student's `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` functions to the interface. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment”, “just build the scaffold dont one shot the whole app”, “set up the databse schemal and use sqlite then also make a schema daigram”, “i added a function called add_restaurant( in the restaurnt domain can you wire it a simple UI thanks”, “can you wire my new remove_resataurnt to the Ui thanks”, “make page where i can see the list of all the restaurants saved or nto”, and “wire save_existing_restaurant to the all restaurant list”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, form and removal routes, saved and full-catalog pages, a save-existing status choice, styling, and draft documentation, which I will review and revise against the code and my own decisions before submission.

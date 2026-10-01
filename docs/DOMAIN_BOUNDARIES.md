@@ -1,6 +1,6 @@
 # Restaurant and dining-history feature boundaries
 
-**Status:** the student-supplied schema is implemented, and restaurant creation and listing now work through `restaurant_domain.py` and the Flask home page. The remaining collection operations and dining-history behavior are planned. See `SCHEMA.md` for the full database diagram.
+**Status:** the student-supplied schema is implemented. The home page handles saved places, while the All restaurants page lists every catalog row, saved or not. The remaining collection operations and dining-history behavior are planned. See `SCHEMA.md` for the full database diagram.
 
 ## Restaurant collection
 
@@ -8,7 +8,7 @@
 
 **Owns:** `restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails`. `restaurants` holds title, category, description, location, contact details, general score and review count, price, menu, and a main image URL. `saved_restaurants` holds `want_to_go` or `visited`, the user's overall rating, personal notes, and whether they would go back. One restaurant can have at most one saved entry because `saved_restaurants.restaurant_id` is unique.
 
-**Implemented operations:** `add_restaurant` creates a restaurant and its saved entry; `list_restaurants` returns saved restaurants for the home page. **Planned:** edit restaurant facts or saved details and filter by category, location, price, or personal rating. The planned personal-rating filter uses `saved_restaurants.rating`, rather than the general `restaurants.total_score` or any individual `visits.rating`.
+**Implemented operations:** `add_restaurant` creates a restaurant and its saved entry; the student-written `save_existing_restaurant` adds an existing catalog row to the saved list as `want_to_go` or `visited`; `list_saved_restaurants` returns saved places for the home page; `list_all_restaurants` reads every `restaurants` row using a left join to show whether it is saved; `remove_restaurant` deletes a saved entry by its own ID. **Planned:** edit restaurant facts or saved details and filter by category, location, price, or personal rating. The planned personal-rating filter uses `saved_restaurants.rating`, rather than the general `restaurants.total_score` or any individual `visits.rating`.
 
 **Rules to test later:** title is required; supplied scores and personal ratings are 0–5; price is 1–4 when present; saved status is `want_to_go` or `visited`; return preference is yes/no when present. Optional fields can remain empty, as allowed by the supplied schema.
 
@@ -30,4 +30,6 @@ Dining history does **not** change restaurant title, category, contact details, 
 
 The Flask layer will coordinate both modules in one process. When recording a visit, it will resolve the saved restaurant by ID, save the visit and its items, and mark the saved entry `visited` through the restaurant collection operation. These database changes should occur in one transaction. The later service seam is `saved_restaurants.id` plus a narrow saved-entry existence/status operation; personal-rating filtering stays inside the restaurant collection and no longer needs a visit-rating summary.
 
-Deleting a restaurant cascades to its saved entry and then visits, bills, and items. Deleting a saved entry cascades to its visits. The future UI should make this effect clear before it offers deletion. Authentication remains undecided; the current scaffold is single-user and has no login, so personal notes and bills should not be treated as access-controlled yet.
+Removing a saved entry leaves the `restaurants` row available on All restaurants. Its visits, bill records, and items cascade away. The current UI asks for confirmation before submitting this removal. When bill file uploads are implemented, file cleanup will also need a rule; SQLite only removes bill rows. Deleting a `restaurants` row would cascade farther, but the current UI does not offer that action. Authentication remains undecided; the current scaffold is single-user and has no login, so personal notes and bills should not be treated as access-controlled yet.
+
+The All restaurants page offers the save choice only for catalog rows without a saved entry. The database's unique `saved_restaurants.restaurant_id` constraint prevents a second saved entry for the same restaurant; the route reports that conflict if a stale page submits one.

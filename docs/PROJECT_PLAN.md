@@ -13,7 +13,7 @@ The two backend feature domains would be:
 
 The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
-The student added `add_restaurant` on 2026-09-30. The home page now calls it from a form and lists saved restaurants; editing, filtering, and dining-history operations are still pending.
+The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited; editing, filtering, and dining-history operations are still pending.
 
 ## Decisions needed before implementation
 

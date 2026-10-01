@@ -1,6 +1,6 @@
 # SQLite schema and relationships
 
-The student supplied the table and column design in the pasted schema. `schema.sql` is the executable version used by `storage.initialize_database` at startup. It creates **seven tables** in `DATA_DIR/devops_food.sqlite3` (default `./data/devops_food.sqlite3`). There is no `users` table or `user_id`: this is a single-user app.
+The student supplied the table and column design in the pasted schema. `database/schema.sql` is the executable version used by `database.initialize_database` at startup. It creates **seven tables** in `DATA_DIR/devops_food.sqlite3` (default `./data/devops_food.sqlite3`). There is no `users` table or `user_id`: this is a single-user app.
 
 ```mermaid
 erDiagram
@@ -84,8 +84,10 @@ erDiagram
 
 `restaurants` holds general restaurant details. `saved_restaurants` holds the single user's status, overall rating, notes, and return preference; its `restaurant_id` is unique, so one restaurant can have at most one saved entry. `visits` holds dated experiences. Each visit can have multiple bill rows and ordered items. Restaurant images and emails belong to the general restaurant record.
 
+Removing a `saved_restaurants` row leaves its `restaurants` row in place, so the full catalog can still display it. The linked visits, bills, and items cascade away.
+
 The three restaurant-related ratings have distinct meanings: `restaurants.total_score` is a general score stored with restaurant details, `saved_restaurants.rating` is the user's overall assessment, and `visits.rating` is one visit's assessment. `visit_items.rating` is for a particular dish. The planned personal-rating filter uses `saved_restaurants.rating`.
 
-SQLite foreign keys are enabled by `storage.connect_database` for each connection, and all foreign keys in `schema.sql` cascade on deletion. The database is created on startup, but restaurant and visit features and bill uploads are not implemented yet. When uploads are added, store files under `DATA_DIR` and put their path in `bills.image_path`; no file storage exists in this scaffold. The `extracted_total` and `extracted_text` columns are optional fields from the supplied schema, not evidence that receipt extraction exists.
+SQLite foreign keys are enabled by `database.connect_database` for each connection, and all foreign keys in `database/schema.sql` cascade on deletion. The database is created on startup; restaurant saving and listing work, while visits and bill uploads are not implemented yet. When uploads are added, store files under `DATA_DIR` and put their path in `bills.image_path`; no file storage exists in this scaffold. The `extracted_total` and `extracted_text` columns are optional fields from the supplied schema, not evidence that receipt extraction exists.
 
 The earlier three-table scaffold schema is incompatible. Startup detects that draft database and raises an error instead of silently mixing the old and new schemas. Use a new empty `DATA_DIR`, or migrate any data you need to keep.

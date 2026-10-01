@@ -22,6 +22,6 @@ Consequences: The split gives a clear later service boundary. Rating-based resta
 Date: 2026-09-30
 Status: Decided
 Context: The 2026-09-29 scaffold used three tables and embedded bill bytes. The student then supplied a more detailed single-user schema separating general restaurant facts, personal saved details, visits, bills, items, images, and emails.
-Decision: Implement those seven tables in `schema.sql` with foreign keys and cascade rules, using `DATA_DIR/devops_food.sqlite3` for SQLite. Keep bill file locations in `bills.image_path` as supplied, with uploaded files planned under `DATA_DIR`.
+Decision: Implement those seven tables in `database/schema.sql` with foreign keys and cascade rules, using `DATA_DIR/devops_food.sqlite3` for SQLite. Keep bill file locations in `bills.image_path` as supplied, with uploaded files planned under `DATA_DIR`.
 Alternatives considered: The original three-table design would keep one persistent file, but it cannot represent separate general and personal ratings or multiple images, emails, and bill records without changing its structure.
 Consequences: The diagram now matches the student's schema and each feature domain has clear table ownership. Bill uploads will need a documented file path and backup alongside SQLite, and money stored as `REAL` may need rounding rules when payment calculations are implemented.
