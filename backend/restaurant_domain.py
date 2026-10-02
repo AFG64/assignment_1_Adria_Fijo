@@ -1,7 +1,22 @@
 from contextlib import closing
+import math
 import sqlite3
 
 from database import connect_database
+
+
+def _location_values(address, latitude, longitude):
+    address = address.strip() if address else None
+    if address is not None and len(address) > 300:
+        raise ValueError("Location must be 300 characters or fewer.")
+    if (latitude is None) != (longitude is None):
+        raise ValueError("Latitude and longitude must be provided together.")
+    if latitude is not None:
+        latitude, longitude = float(latitude), float(longitude)
+        if (not math.isfinite(latitude) or not -90 <= latitude <= 90
+                or not math.isfinite(longitude) or not -180 <= longitude <= 180):
+            raise ValueError("Coordinates are outside the valid range.")
+    return address, latitude, longitude
 
 
 def add_restaurant(
@@ -13,6 +28,9 @@ def add_restaurant(
     rating=None,
     notes=None,
     status="want_to_go",
+    address=None,
+    latitude=None,
+    longitude=None,
 ):
 
     title = title.strip() if title else ""
@@ -36,13 +54,16 @@ def add_restaurant(
     if status not in ("want_to_go", "visited"):
         raise ValueError("Status must be 'want_to_go' or 'visited'.")
 
+    address, latitude, longitude = _location_values(address, latitude, longitude)
+
     with connect_database(database_path) as connection:
         cursor = connection.execute(
             """
-            INSERT INTO restaurants (title, category_name, city, price)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO restaurants
+                (title, category_name, city, price, address, latitude, longitude)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (title, category_name, city, price),
+            (title, category_name, city, price, address, latitude, longitude),
         )
         restaurant_id = cursor.lastrowid
 
@@ -56,6 +77,27 @@ def add_restaurant(
         )
 
     return restaurant_id
+
+
+def update_restaurant_location(database_path, restaurant_id, address, latitude, longitude):
+    """Save an address and its coordinates on an existing restaurant."""
+    if not restaurant_id:
+        raise ValueError("Restaurant ID is required.")
+    address, latitude, longitude = _location_values(address, latitude, longitude)
+    if not address or latitude is None:
+        raise ValueError("Enter a location that can be found on a map.")
+
+    with connect_database(database_path) as connection:
+        cursor = connection.execute(
+            """
+            UPDATE restaurants
+            SET address = ?, latitude = ?, longitude = ?
+            WHERE id = ?
+            """,
+            (address, latitude, longitude, restaurant_id),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError("Restaurant not found.")
 
 
 def list_saved_restaurants(database_path):
