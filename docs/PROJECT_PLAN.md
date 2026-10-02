@@ -13,13 +13,15 @@ The two backend feature domains would be:
 
 The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
-The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited; editing, filtering, and dining-history operations are still pending.
+The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited; other editing and filtering are still pending.
 
-On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists now link to a detail page backed by that function. The page displays general facts and any saved details; visit history is still pending.
+On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists now link to a detail page backed by that function. The page displays general facts, saved details, and visit history.
 
 The add form now opens from the + control beside the app title. A validation error keeps it open with the entered values; the saved-list page remains visible when the form is closed.
 
 The student added `add_visit` and `add_bill` in `backend/dining_history.py` on 2026-10-01. The restaurant detail page now records and lists visits, accepts bill uploads for each visit, and provides downloads. The UI validates dates, ratings, and uploaded files; ordered items, spend, and party size remain planned.
+
+On 2026-10-02, Codex added optional location entry and coordinate lookup to the restaurant add form, plus a location editor on the detail page. Address, latitude, and longitude already existed in the student-supplied `restaurants` table, so no schema change was needed. The lookup service caches results under `DATA_DIR` and is used only when the user submits a location.
 
 ## Decisions needed before implementation
 

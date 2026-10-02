@@ -33,6 +33,11 @@ label { font-weight: 650; font-size: .9rem; }
 input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #b9c8bc; border-radius: 8px; background: #fff; color: inherit; font: inherit; }
 input:focus, select:focus, textarea:focus { outline: 2px solid #317249; outline-offset: 1px; }
 textarea { resize: vertical; }
+.field-hint, .attribution { color: #637166; font-size: .85rem; line-height: 1.45; }
+.attribution { margin: 16px 0; }
+.attribution a, .location-actions a { color: #315840; }
+.location-coordinates { margin-top: 16px; }
+.location-actions { margin: 14px 0 0; }
 button { padding: 11px 18px; border: 0; border-radius: 8px; background: #2f7548; color: white; font: inherit; font-weight: 700; cursor: pointer; }
 button:hover { background: #245f39; }
 .message { padding: 12px 14px; border-radius: 8px; }

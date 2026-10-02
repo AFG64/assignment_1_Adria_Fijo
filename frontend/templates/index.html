@@ -57,6 +57,14 @@
           </div>
 
           <div class="field">
+            <label for="address">Location or street address</label>
+            <input id="address" name="address" type="text" maxlength="300"
+                   placeholder="Carrer de Mallorca 401, Barcelona"
+                   value="{{ values.get('address', '') }}">
+            <small class="field-hint">If you enter a location, the app looks up its coordinates when you save. The address is sent to OpenStreetMap's search service.</small>
+          </div>
+
+          <div class="field">
             <label for="status">Status</label>
             <select id="status" name="status">
               <option value="want_to_go" {% if values.get('status', 'want_to_go') == 'want_to_go' %}selected{% endif %}>Want to go</option>
@@ -68,6 +76,7 @@
             <label for="notes">Notes</label>
             <textarea id="notes" name="notes" rows="3" placeholder="What caught your eye?">{{ values.get('notes', '') }}</textarea>
           </div>
+          <p class="attribution">Location data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.</p>
 
           <div class="form-actions">
             <button type="submit">Save restaurant</button>

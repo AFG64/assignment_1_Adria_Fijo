@@ -12,6 +12,7 @@ from database import database_path, initialize_database
 
 from .bill_files import MAX_BILL_BYTES, remove_bill_file, store_bill_file, stored_bill_path
 from .dining_history import add_bill, add_visit, get_bill_path, get_visit, list_bill_paths, list_visits
+from .geocoding import geocode_address, search_query
 from .restaurant_domain import (
     add_restaurant,
     get_restaurant_details,
@@ -19,6 +20,7 @@ from .restaurant_domain import (
     list_saved_restaurants,
     remove_restaurant,
     save_existing_restaurant,
+    update_restaurant_location,
 )
 
 
@@ -52,6 +54,9 @@ def create_app():
             visit_error=context.get("visit_error"),
             bill_error=context.get("bill_error"),
             bill_error_visit_id=context.get("bill_error_visit_id"),
+            location_error=context.get("location_error"),
+            location_values=context.get("location_values", {}),
+            location_saved=request.args.get("location_saved"),
             visit_added=request.args.get("visit_added"),
             bill_added=request.args.get("bill_added"),
         )
@@ -71,6 +76,17 @@ def create_app():
     def create_restaurant():
         values = request.form.to_dict()
         try:
+            if not (values.get("title") or "").strip():
+                raise ValueError("Restaurant name is required.")
+            address = (values.get("address") or "").strip()
+            if len(address) > 300:
+                raise ValueError("Location must be 300 characters or fewer.")
+            coordinates = (
+                geocode_address(
+                    app.config["DATABASE_PATH"],
+                    search_query(address, values.get("city")),
+                ) if address else None
+            )
             restaurant_id = add_restaurant(
                 app.config["DATABASE_PATH"],
                 title=values.get("title"),
@@ -80,6 +96,9 @@ def create_app():
                 rating=values.get("rating"),
                 notes=values.get("notes"),
                 status=values.get("status", "want_to_go"),
+                address=address or None,
+                latitude=coordinates["latitude"] if coordinates else None,
+                longitude=coordinates["longitude"] if coordinates else None,
             )
         except ValueError as error:
             return render_template(
@@ -105,6 +124,30 @@ def create_app():
     @app.get("/restaurants/<int:restaurant_id>")
     def restaurant_details(restaurant_id):
         return render_restaurant_details(restaurant_id)
+
+    @app.post("/restaurants/<int:restaurant_id>/location")
+    def save_restaurant_location(restaurant_id):
+        restaurant = get_restaurant_details(app.config["DATABASE_PATH"], restaurant_id)
+        if restaurant is None:
+            abort(404, description="Restaurant not found.")
+        values = request.form.to_dict()
+        address = (values.get("address") or "").strip()
+        try:
+            if len(address) > 300:
+                raise ValueError("Location must be 300 characters or fewer.")
+            coordinates = geocode_address(
+                app.config["DATABASE_PATH"],
+                search_query(address, restaurant["city"]),
+            )
+            update_restaurant_location(
+                app.config["DATABASE_PATH"], restaurant_id, address,
+                coordinates["latitude"], coordinates["longitude"],
+            )
+        except ValueError as error:
+            return render_restaurant_details(
+                restaurant_id, location_error=str(error), location_values=values,
+            ), 400
+        return redirect(url_for("restaurant_details", restaurant_id=restaurant_id, location_saved=1) + "#location")
 
     @app.post("/restaurants/<int:restaurant_id>/visits")
     def create_visit(restaurant_id):
