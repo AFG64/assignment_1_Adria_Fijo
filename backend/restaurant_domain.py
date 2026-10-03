@@ -12,7 +12,10 @@ def _location_values(address, latitude, longitude):
     if (latitude is None) != (longitude is None):
         raise ValueError("Latitude and longitude must be provided together.")
     if latitude is not None:
-        latitude, longitude = float(latitude), float(longitude)
+        try:
+            latitude, longitude = float(latitude), float(longitude)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Enter valid latitude and longitude numbers.") from error
         if (not math.isfinite(latitude) or not -90 <= latitude <= 90
                 or not math.isfinite(longitude) or not -180 <= longitude <= 180):
             raise ValueError("Coordinates are outside the valid range.")

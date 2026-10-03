@@ -116,5 +116,5 @@ def geocode_address(database_path, query):
             _write_cache(cache_path, cache)
 
     if result is None:
-        raise GeocodingError("Location not found. Add a more specific address or city.")
+        raise GeocodingError("Location not found. Try a full address with city and postal code, or enter coordinates manually below.")
     return result

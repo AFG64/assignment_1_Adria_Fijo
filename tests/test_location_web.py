@@ -122,6 +122,60 @@ def test_failed_location_change_preserves_existing_coordinates(app, monkeypatch)
     assert row == ("Original", 40.0, 3.0)
 
 
+def test_manual_coordinates_work_after_search_failure(app, monkeypatch):
+    restaurant_id = add_restaurant(app.config["DATABASE_PATH"], "Test cafe")
+
+    def no_match(*_):
+        raise GeocodingError("Location not found.")
+
+    monkeypatch.setattr("backend.web.geocode_address", no_match)
+    client = app.test_client()
+    failed_search = client.post(
+        f"/restaurants/{restaurant_id}/location", data={"address": "Test cafe, Madrid"},
+    )
+    assert failed_search.status_code == 400
+    assert b"Enter coordinates manually" in failed_search.data
+
+    response = client.post(
+        f"/restaurants/{restaurant_id}/location",
+        data={
+            "mode": "manual", "address": "Test cafe, Madrid",
+            "latitude": "40.4270356", "longitude": "-3.6839682",
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Location and coordinates saved." in response.data
+    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+        row = connection.execute(
+            "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
+            (restaurant_id,),
+        ).fetchone()
+    assert row == ("Test cafe, Madrid", 40.4270356, -3.6839682)
+
+
+def test_invalid_manual_coordinates_keep_previous_location(app):
+    restaurant_id = add_restaurant(
+        app.config["DATABASE_PATH"], "Test cafe", address="Original",
+        latitude=40.0, longitude=3.0,
+    )
+    response = app.test_client().post(
+        f"/restaurants/{restaurant_id}/location",
+        data={
+            "mode": "manual", "address": "New place",
+            "latitude": "not-a-number", "longitude": "2.0",
+        },
+    )
+    assert response.status_code == 400
+    assert b"Enter valid latitude and longitude numbers." in response.data
+    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+        row = connection.execute(
+            "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
+            (restaurant_id,),
+        ).fetchone()
+    assert row == ("Original", 40.0, 3.0)
+
+
 def test_missing_restaurant_location_route_returns_404(app):
     response = app.test_client().post("/restaurants/999/location", data={"address": "Anywhere"})
     assert response.status_code == 404

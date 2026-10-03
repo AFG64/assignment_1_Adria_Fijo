@@ -71,9 +71,9 @@
       <p class="field-hint">If the pin is inaccurate, enter a more specific address below.</p>
     {% endif %}
 
-    <details class="visit-composer" {% if location_error %}open{% endif %}>
+    <details class="visit-composer" {% if location_error and location_mode == 'search' %}open{% endif %}>
       <summary>{{ 'Change location' if restaurant.address else 'Add location' }}</summary>
-      {% if location_error %}<p class="message error" role="alert">{{ location_error }}</p>{% endif %}
+      {% if location_error and location_mode == 'search' %}<p class="message error" role="alert">{{ location_error }}</p>{% endif %}
       <form method="post" action="{{ url_for('save_restaurant_location', restaurant_id=restaurant.id) }}">
         <div class="field">
           <label for="restaurant_address">Location or street address</label>
@@ -83,6 +83,32 @@
           <small class="field-hint">A full street address usually gives a more accurate pin. The address is sent to OpenStreetMap's search service.</small>
         </div>
         <button type="submit">Find coordinates</button>
+      </form>
+    </details>
+    <details class="visit-composer" {% if location_error and location_mode == 'manual' %}open{% endif %}>
+      <summary>Enter coordinates manually</summary>
+      <p class="field-hint">Find the place on <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, then copy the latitude and longitude from the map URL after <code>#map=zoom/</code>.</p>
+      {% if location_error and location_mode == 'manual' %}<p class="message error" role="alert">{{ location_error }}</p>{% endif %}
+      <form method="post" action="{{ url_for('save_restaurant_location', restaurant_id=restaurant.id) }}">
+        <input type="hidden" name="mode" value="manual">
+        <div class="field">
+          <label for="manual_address">Address or place name</label>
+          <input id="manual_address" name="address" type="text" maxlength="300" required
+                 value="{{ location_values.get('address', restaurant.address or '') }}">
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="manual_latitude">Latitude</label>
+            <input id="manual_latitude" name="latitude" type="number" min="-90" max="90" step="any" required
+                   value="{{ location_values.get('latitude', restaurant.latitude if restaurant.latitude is not none else '') }}">
+          </div>
+          <div class="field">
+            <label for="manual_longitude">Longitude</label>
+            <input id="manual_longitude" name="longitude" type="number" min="-180" max="180" step="any" required
+                   value="{{ location_values.get('longitude', restaurant.longitude if restaurant.longitude is not none else '') }}">
+          </div>
+        </div>
+        <button type="submit">Save coordinates</button>
       </form>
     </details>
     <p class="attribution">Location data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.</p>

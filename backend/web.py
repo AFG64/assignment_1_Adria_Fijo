@@ -56,6 +56,7 @@ def create_app():
             bill_error_visit_id=context.get("bill_error_visit_id"),
             location_error=context.get("location_error"),
             location_values=context.get("location_values", {}),
+            location_mode=context.get("location_mode", "search"),
             location_saved=request.args.get("location_saved"),
             visit_added=request.args.get("visit_added"),
             bill_added=request.args.get("bill_added"),
@@ -132,13 +133,20 @@ def create_app():
             abort(404, description="Restaurant not found.")
         values = request.form.to_dict()
         address = (values.get("address") or "").strip()
+        manual = values.get("mode") == "manual"
         try:
             if len(address) > 300:
                 raise ValueError("Location must be 300 characters or fewer.")
-            coordinates = geocode_address(
-                app.config["DATABASE_PATH"],
-                search_query(address, restaurant["city"]),
-            )
+            if manual:
+                coordinates = {
+                    "latitude": values.get("latitude"),
+                    "longitude": values.get("longitude"),
+                }
+            else:
+                coordinates = geocode_address(
+                    app.config["DATABASE_PATH"],
+                    search_query(address, restaurant["city"]),
+                )
             update_restaurant_location(
                 app.config["DATABASE_PATH"], restaurant_id, address,
                 coordinates["latitude"], coordinates["longitude"],
@@ -146,6 +154,7 @@ def create_app():
         except ValueError as error:
             return render_restaurant_details(
                 restaurant_id, location_error=str(error), location_values=values,
+                location_mode="manual" if manual else "search",
             ), 400
         return redirect(url_for("restaurant_details", restaurant_id=restaurant_id, location_saved=1) + "#location")
 

@@ -23,6 +23,8 @@ The student added `add_visit` and `add_bill` in `backend/dining_history.py` on 2
 
 On 2026-10-02, Codex added optional location entry and coordinate lookup to the restaurant add form, plus a location editor on the detail page. Address, latitude, and longitude already existed in the student-supplied `restaurants` table, so no schema change was needed. The lookup service caches results under `DATA_DIR` and is used only when the user submits a location.
 
+On 2026-10-03, the location flow was corrected so a complete address is not combined with an unrelated saved city. The detail page also gained manual coordinate entry for locations the search cannot find or matches incorrectly. No schema change was needed.
+
 ## Decisions needed before implementation
 
 - [x] Get the specific app idea and its two backend feature domains approved by the professor (§2).
