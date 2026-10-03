@@ -10,7 +10,7 @@ Before submission, write specific, measurable goals for the finished app. Exampl
 
 ## 2. SDLC model and actual practice
 
-The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, connected the student's restaurant functions to saved, catalog, and detail pages, and connected the student's `add_visit` and `add_bill` functions to visit recording and bill upload controls. On 2026-10-02, a later iteration added address lookup and coordinate storage using existing schema columns. Further iterations can add ordered items and other visit fields, then final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
+The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, connected the student's restaurant functions to saved, catalog, and detail pages, and connected the student's `add_visit` and `add_bill` functions to visit recording and bill upload controls. On 2026-10-02, a later iteration added address lookup and coordinate storage using existing schema columns. On 2026-10-03, the location flow was corrected and core-domain tests were expanded. Further iterations can add ordered items and other visit fields. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
 
 ## 3. Architecture overview
 
@@ -119,7 +119,7 @@ erDiagram
 
 ## 5. Testing, deployment contract, and reflection
 
-**Pending implementation:** describe the actual unit tests for each domain, paste the coverage command and measured result, and explain what remained thin. Confirm that `python app.py` starts one process on `0.0.0.0`, uses `PORT`, initializes `DATA_DIR/devops_food.sqlite3`, and needs no interactive setup. Explain any tradeoffs discovered while implementing uploads, filtering, and privacy.
+On 2026-10-03, `python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing` passed 38 tests and measured 97% combined coverage of the two domain modules: 95% for restaurant collection and 100% for dining history. The domain tests exercise validation, persistence, saved-list removal, visits, bill ownership, and SQLite cascades. Route tests use Flask's test client and mock the external location lookup. Coverage does not measure every UI path or prove that a map result points to the intended building. Before submission, confirm the fresh-start deployment contract and describe the tradeoffs around uploads, filtering, and privacy in the student's own words.
 
 ## AI disclosure statement
 

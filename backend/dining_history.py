@@ -8,7 +8,7 @@ def add_visit(database_path, saved_restaurant_id, visit_date, rating=None, notes
     if not saved_restaurant_id:
         raise ValueError("Saved restaurant ID is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             INSERT INTO visits (saved_restaurant_id, visit_date, rating, notes)
@@ -107,7 +107,7 @@ def add_bill(database_path, visit_id, image_path):
     if not image_path:
         raise ValueError("Image path is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """INSERT INTO bills (visit_id, image_path)
             VALUES (?, ?)

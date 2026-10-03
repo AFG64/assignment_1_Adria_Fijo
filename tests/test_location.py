@@ -1,4 +1,5 @@
 import sqlite3
+from contextlib import closing
 
 import pytest
 
@@ -23,7 +24,7 @@ def test_new_restaurant_keeps_address_and_coordinates(database_file):
         longitude=2.1744,
     )
 
-    with sqlite3.connect(database_file) as connection:
+    with closing(sqlite3.connect(database_file)) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
             (restaurant_id,),
@@ -38,7 +39,7 @@ def test_existing_restaurant_can_gain_a_location(database_file):
         database_file, restaurant_id, "Plaça de Catalunya, Barcelona", 41.387, 2.17,
     )
 
-    with sqlite3.connect(database_file) as connection:
+    with closing(sqlite3.connect(database_file)) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
             (restaurant_id,),
@@ -62,7 +63,7 @@ def test_invalid_coordinates_do_not_create_a_restaurant(database_file, latitude,
             latitude=latitude, longitude=longitude,
         )
 
-    with sqlite3.connect(database_file) as connection:
+    with closing(sqlite3.connect(database_file)) as connection:
         assert connection.execute("SELECT COUNT(*) FROM restaurants").fetchone()[0] == 0
 
 

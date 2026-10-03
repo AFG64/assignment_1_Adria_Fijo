@@ -37,8 +37,8 @@ On 2026-10-03, the location flow was corrected so a complete address is not comb
 
 - [ ] Working monolithic app with two distinct backend domains, each using SQLite.
 - [x] One dependency manifest at the repository root.
-- [ ] Automated unit tests of both domains' business logic; measure at least 70% coverage.
-- [ ] `README.md`: install, run, configuration, SQLite path, test/coverage command and measured result.
+- [x] Automated unit tests of both domains' business logic; 97% combined domain coverage measured on 2026-10-03.
+- [x] `README.md`: install, run, configuration, SQLite path, test/coverage command and measured result.
 - [ ] `ADR.md`: exactly five decided entries in the prescribed format, written as decisions are made.
 - [ ] `AI_USAGE.md`: one accurate row per meaningful AI interaction, reviewed and explained in the student's own words.
 - [ ] Four to five page report with SMART goals, SDLC reflection, matching architecture and database diagrams, and the syllabus AI disclosure statement.

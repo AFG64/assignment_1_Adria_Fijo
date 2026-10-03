@@ -59,7 +59,7 @@ def add_restaurant(
 
     address, latitude, longitude = _location_values(address, latitude, longitude)
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             INSERT INTO restaurants
@@ -90,7 +90,7 @@ def update_restaurant_location(database_path, restaurant_id, address, latitude, 
     if not address or latitude is None:
         raise ValueError("Enter a location that can be found on a map.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             UPDATE restaurants
@@ -142,7 +142,7 @@ def remove_restaurant(database_path, saved_restaurant_id: int) -> None:
     if not saved_restaurant_id:
         raise ValueError("Saved restaurant ID is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             "DELETE FROM saved_restaurants WHERE id = ?",
             (saved_restaurant_id,),
@@ -164,7 +164,7 @@ def save_existing_restaurant(database_path, restaurant_id, status="want_to_go"):
     if status not in ("want_to_go", "visited"):
         raise ValueError("Invalid status.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         connection.execute(
             """
             INSERT INTO saved_restaurants (restaurant_id, status)
@@ -182,7 +182,7 @@ def get_restaurant_details(database_path, restaurant_id):
     if not restaurant_id:
             raise ValueError("Restaurant ID is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute(
             """SELECT r.*,

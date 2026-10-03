@@ -1,6 +1,7 @@
 """The location forms use the restaurant domain without making live map requests."""
 
 import sqlite3
+from contextlib import closing
 
 import pytest
 
@@ -31,7 +32,7 @@ def test_create_restaurant_with_location(app, monkeypatch):
 
     assert response.status_code == 302
     assert lookups == ["Carrer de Mallorca 401, Barcelona"]
-    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+    with closing(sqlite3.connect(app.config["DATABASE_PATH"])) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE title = ?",
             ("Test cafe",),
@@ -56,7 +57,7 @@ def test_location_lookup_error_preserves_form_without_inserting(app, monkeypatch
     assert response.status_code == 400
     assert b"Location not found." in response.data
     assert b'Unknown address' in response.data
-    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+    with closing(sqlite3.connect(app.config["DATABASE_PATH"])) as connection:
         assert connection.execute("SELECT COUNT(*) FROM restaurants").fetchone()[0] == 0
 
 
@@ -114,7 +115,7 @@ def test_failed_location_change_preserves_existing_coordinates(app, monkeypatch)
     assert response.status_code == 400
     assert b"Location not found." in response.data
     assert b"Unknown address" in response.data
-    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+    with closing(sqlite3.connect(app.config["DATABASE_PATH"])) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
             (restaurant_id,),
@@ -146,7 +147,7 @@ def test_manual_coordinates_work_after_search_failure(app, monkeypatch):
     )
     assert response.status_code == 200
     assert b"Location and coordinates saved." in response.data
-    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+    with closing(sqlite3.connect(app.config["DATABASE_PATH"])) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
             (restaurant_id,),
@@ -168,7 +169,7 @@ def test_invalid_manual_coordinates_keep_previous_location(app):
     )
     assert response.status_code == 400
     assert b"Enter valid latitude and longitude numbers." in response.data
-    with sqlite3.connect(app.config["DATABASE_PATH"]) as connection:
+    with closing(sqlite3.connect(app.config["DATABASE_PATH"])) as connection:
         row = connection.execute(
             "SELECT address, latitude, longitude FROM restaurants WHERE id = ?",
             (restaurant_id,),
