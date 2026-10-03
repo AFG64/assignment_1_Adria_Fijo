@@ -1,0 +1,106 @@
+"""Business rules for the restaurant collection."""
+
+import sqlite3
+from contextlib import closing
+
+import pytest
+
+from backend.restaurant_domain import (
+    add_restaurant,
+    get_restaurant_details,
+    list_all_restaurants,
+    list_saved_restaurants,
+    remove_restaurant,
+    save_existing_restaurant,
+)
+from database import initialize_database
+
+
+@pytest.fixture
+def database_file(tmp_path):
+    path = tmp_path / "restaurants.sqlite3"
+    initialize_database(path)
+    return path
+
+
+def test_add_restaurant_saves_general_and_personal_details(database_file):
+    restaurant_id = add_restaurant(
+        database_file, "  Corner Cafe  ", category_name="Cafe", city="Madrid",
+        price=2, rating=4.5, notes="Good coffee", status="visited",
+    )
+
+    details = get_restaurant_details(database_file, restaurant_id)
+    assert details["title"] == "Corner Cafe"
+    assert details["category_name"] == "Cafe"
+    assert details["city"] == "Madrid"
+    assert details["price"] == 2
+    assert details["saved_status"] == "visited"
+    assert details["personal_rating"] == 4.5
+    assert details["personal_notes"] == "Good coffee"
+
+
+@pytest.mark.parametrize("changes", [
+    {"title": "  "},
+    {"price": 0},
+    {"price": 5},
+    {"rating": -1},
+    {"rating": 6},
+    {"status": "maybe"},
+])
+def test_invalid_restaurant_is_not_saved(database_file, changes):
+    fields = {"title": "Corner Cafe", **changes}
+    with pytest.raises(ValueError):
+        add_restaurant(database_file, **fields)
+
+    assert list_all_restaurants(database_file) == []
+
+
+def test_removing_saved_entry_keeps_catalog_restaurant(database_file):
+    first_id = add_restaurant(database_file, "Zebra Cafe")
+    second_id = add_restaurant(database_file, "Alpha Cafe")
+    saved = list_saved_restaurants(database_file)
+    assert [place["title"] for place in saved] == ["Alpha Cafe", "Zebra Cafe"]
+
+    first_saved_id = next(place["saved_id"] for place in saved if place["id"] == first_id)
+    remove_restaurant(database_file, first_saved_id)
+
+    assert [place["id"] for place in list_saved_restaurants(database_file)] == [second_id]
+    catalog = list_all_restaurants(database_file)
+    assert [place["title"] for place in catalog] == ["Alpha Cafe", "Zebra Cafe"]
+    assert catalog[1]["saved_id"] is None
+    assert get_restaurant_details(database_file, first_id)["saved_id"] is None
+
+
+def test_existing_catalog_restaurant_can_be_saved_again(database_file):
+    restaurant_id = add_restaurant(database_file, "Corner Cafe")
+    saved_id = list_saved_restaurants(database_file)[0]["saved_id"]
+    remove_restaurant(database_file, saved_id)
+
+    save_existing_restaurant(database_file, restaurant_id, status="visited")
+
+    assert get_restaurant_details(database_file, restaurant_id)["saved_status"] == "visited"
+    with pytest.raises(sqlite3.IntegrityError):
+        save_existing_restaurant(database_file, restaurant_id, status="visited")
+    assert len(list_saved_restaurants(database_file)) == 1
+
+
+def test_missing_saved_entry_cannot_be_removed(database_file):
+    with pytest.raises(ValueError, match="Saved restaurant not found"):
+        remove_restaurant(database_file, 999)
+    with pytest.raises(ValueError, match="Saved restaurant ID is required"):
+        remove_restaurant(database_file, 0)
+
+
+def test_missing_restaurant_details_returns_none(database_file):
+    assert get_restaurant_details(database_file, 999) is None
+    with pytest.raises(ValueError, match="Restaurant ID is required"):
+        get_restaurant_details(database_file, 0)
+
+
+def test_saved_entry_requires_existing_restaurant_and_valid_status(database_file):
+    with pytest.raises(ValueError, match="Invalid status"):
+        save_existing_restaurant(database_file, 1, status="maybe")
+    with pytest.raises(sqlite3.IntegrityError):
+        save_existing_restaurant(database_file, 999)
+    with closing(sqlite3.connect(database_file)) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM saved_restaurants").fetchone()[0] == 0
