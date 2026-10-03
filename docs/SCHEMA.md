@@ -84,6 +84,8 @@ erDiagram
 
 `restaurants` holds general restaurant details. `saved_restaurants` holds the single user's status, overall rating, notes, and return preference; its `restaurant_id` is unique, so one restaurant can have at most one saved entry. `visits` holds dated experiences. Each visit can have multiple bill rows and ordered items. Restaurant images and emails belong to the general restaurant record.
 
+The location feature fills the existing `restaurants.address`, `restaurants.latitude`, and `restaurants.longitude` columns. The user can enter an address for a coordinate lookup or supply a coordinate pair manually on the detail page. The lookup cache is a separate JSON file under `DATA_DIR` and is not part of this SQLite schema. No table or column was added for this feature.
+
 Removing a `saved_restaurants` row leaves its `restaurants` row in place, so the full catalog can still display it. The linked visits, bills, and items cascade away.
 
 The three restaurant-related ratings have distinct meanings: `restaurants.total_score` is a general score stored with restaurant details, `saved_restaurants.rating` is the user's overall assessment, and `visits.rating` is one visit's assessment. `visit_items.rating` is for a particular dish. The planned personal-rating filter uses `saved_restaurants.rating`.

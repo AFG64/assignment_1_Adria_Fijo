@@ -10,19 +10,22 @@ Before submission, write specific, measurable goals for the finished app. Exampl
 
 ## 2. SDLC model and actual practice
 
-The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, connected the student's restaurant functions to saved, catalog, and detail pages, and connected the student's `add_visit` and `add_bill` functions to visit recording and bill upload controls. Later iterations will add ordered items and other visit fields, then tests and final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
+The planned model is short iterative development. The first iterations produced a deployable scaffold, implemented the student-supplied schema, connected the student's restaurant functions to saved, catalog, and detail pages, and connected the student's `add_visit` and `add_bill` functions to visit recording and bill upload controls. On 2026-10-02, a later iteration added address lookup and coordinate storage using existing schema columns. Further iterations can add ordered items and other visit fields, then final documentation. This fits a small individual project because each iteration can be run and inspected, and later findings can revise the next step. The final report should state where actual work followed or diverged from this plan, with dates or commits as evidence.
 
 ## 3. Architecture overview
 
-The current app has one Flask process, one SQLite database file, and bill files under the same `DATA_DIR`. Restaurant creation through a form opened by the + control, saving an existing catalog row, saved-list removal, and separate saved, full-catalog, and detail views are implemented. The detail page records visits and uploads and downloads bills; ordered items and other visit fields are planned. Recheck this diagram against the final submission.
+The current app has one Flask process, one SQLite database file, bill files, and an address-lookup cache under `DATA_DIR`. Restaurant creation through a form opened by the + control, saving an existing catalog row, saved-list removal, and separate saved, full-catalog, and detail views are implemented. The location forms call an external address lookup only on submission and store the returned latitude and longitude in the existing restaurant row. A complete address is searched without adding the restaurant's saved city; the detail page also accepts manual coordinates if search fails or matches the wrong place. The detail page records visits and uploads and downloads bills; ordered items and other visit fields are planned. Recheck this diagram against the final submission.
 
 ```mermaid
 flowchart LR
     Browser[Browser] --> Flask[Flask backend/web.py]
     Flask --> Restaurants[Restaurant collection module]
-    Flask --> Visits[Dining history module — planned]
+    Flask --> Visits[Dining history module]
+    Flask --> Geocoder[Cached address lookup]
+    Geocoder --> Nominatim[OpenStreetMap Nominatim]
     Restaurants --> SQLite[(SQLite: devops_food.sqlite3)]
     Visits --> SQLite
+    Geocoder --> Cache[(geocoding_cache.json)]
     Flask --> Templates[HTML templates]
 ```
 
@@ -112,7 +115,7 @@ erDiagram
     }
 ```
 
-`restaurants` contains general details. `saved_restaurants` contains the one user's personal status, overall rating, notes, and return preference; its `restaurant_id` is unique. Each saved entry can have several visits, and each visit can have several bills and ordered items. Foreign keys use cascading deletion. There is no `users` table. Uploaded bill files are stored under `DATA_DIR/bills/`, and their relative locations are stored in `bills.image_path`.
+`restaurants` contains general details, including the existing `address`, `latitude`, and `longitude` columns now used by the location forms. `saved_restaurants` contains the one user's personal status, overall rating, notes, and return preference; its `restaurant_id` is unique. Each saved entry can have several visits, and each visit can have several bills and ordered items. Foreign keys use cascading deletion. There is no `users` table. Uploaded bill files are stored under `DATA_DIR/bills/`, and their relative locations are stored in `bills.image_path`.
 
 ## 5. Testing, deployment contract, and reflection
 
@@ -120,4 +123,4 @@ erDiagram
 
 ## AI disclosure statement
 
-I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, draft an initial Flask/SQLite scaffold, implement the student-supplied database schema and diagram, and connect the student's restaurant and dining-history functions to the interface. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment”, “just build the scaffold dont one shot the whole app”, “set up the databse schemal and use sqlite then also make a schema daigram”, “i added a function called add_restaurant( in the restaurnt domain can you wire it a simple UI thanks”, “can you wire my new remove_resataurnt to the Ui thanks”, “make page where i can see the list of all the restaurants saved or nto”, “wire save_existing_restaurant to the all restaurant list”, “wire this to the UI so I can click on the restaurant and see the details”, “make a plus button by the title that opens the add form”, and “i added a new file called dining_history with two functions add visit and add bill can you wire them to the UI”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, restaurant and visit forms and routes, saved, full-catalog, and detail pages, bill upload and download handling, styling, and draft documentation, which I will review and revise against the code and my own decisions before submission.
+I acknowledge the use of OpenAI Codex to read the assignment, organize the repository, draft an initial Flask/SQLite scaffold, implement the student-supplied database schema and diagram, and connect the student's restaurant and dining-history functions to the interface. The prompts used include “read the assingment md and htne set up the repo so it fills all the required documents fo the assingment”, “just build the scaffold dont one shot the whole app”, “set up the databse schemal and use sqlite then also make a schema daigram”, “i added a function called add_restaurant( in the restaurnt domain can you wire it a simple UI thanks”, “can you wire my new remove_resataurnt to the Ui thanks”, “make page where i can see the list of all the restaurants saved or nto”, “wire save_existing_restaurant to the all restaurant list”, “wire this to the UI so I can click on the restaurant and see the details”, “make a plus button by the title that opens the add form”, “i added a new file called dining_history with two functions add visit and add bill can you wire them to the UI”, “add a new branch ... put the location for the restaurant and then ... lat and long ... at least two commits ... a pr”, and “Location not found ... work on fixing this and then add another 2 commits”. The output of these prompts was used to create the initial project structure, SQLite schema implementation, matching diagram, restaurant and visit forms and routes, saved, full-catalog, and detail pages, bill upload and download handling, optional address entry and coordinate lookup, manual coordinate fallback, styling, and draft documentation, which I will review and revise against the code and my own decisions before submission.
