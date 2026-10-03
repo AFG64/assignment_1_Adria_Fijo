@@ -23,12 +23,12 @@ class GeocodingError(ValueError):
 
 
 def search_query(address, city=None):
-    """Add the city when it is not already in the address text."""
+    """Use a full address as entered; add the saved city only to short queries."""
     address = (address or "").strip()
     city = (city or "").strip()
     if not address:
         raise GeocodingError("Enter a street address or place to find coordinates.")
-    if city and city.casefold() not in address.casefold():
+    if city and "," not in address and city.casefold() not in address.casefold():
         return f"{address}, {city}"
     return address
 

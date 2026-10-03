@@ -67,6 +67,8 @@ def test_missing_result_is_cached(tmp_path, monkeypatch):
 def test_query_includes_city_once():
     assert geocoding.search_query("Main Street 1", "Madrid") == "Main Street 1, Madrid"
     assert geocoding.search_query("Main Street 1, Madrid", "Madrid") == "Main Street 1, Madrid"
+    assert geocoding.search_query("Calle de Velázquez 25, Madrid", "Andorra") == "Calle de Velázquez 25, Madrid"
+    assert geocoding.search_query("Calle de Velázquez 25, Madrid, 28001", "Andorra") == "Calle de Velázquez 25, Madrid, 28001"
 
 
 def test_new_search_waits_for_one_request_per_second(tmp_path, monkeypatch):

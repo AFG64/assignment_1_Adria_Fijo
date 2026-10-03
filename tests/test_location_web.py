@@ -80,6 +80,24 @@ def test_existing_restaurant_location_can_be_changed(app, monkeypatch):
     assert b"OpenStreetMap contributors" in response.data
 
 
+def test_complete_address_is_not_combined_with_old_city(app, monkeypatch):
+    restaurant_id = add_restaurant(app.config["DATABASE_PATH"], "Test cafe", city="Andorra")
+    lookups = []
+
+    def fake_geocode(_database_path, query):
+        lookups.append(query)
+        return {"latitude": 40.427, "longitude": -3.684}
+
+    monkeypatch.setattr("backend.web.geocode_address", fake_geocode)
+    response = app.test_client().post(
+        f"/restaurants/{restaurant_id}/location",
+        data={"address": "Calle de Velázquez 25, Madrid, 28001"},
+    )
+
+    assert response.status_code == 302
+    assert lookups == ["Calle de Velázquez 25, Madrid, 28001"]
+
+
 def test_failed_location_change_preserves_existing_coordinates(app, monkeypatch):
     restaurant_id = add_restaurant(
         app.config["DATABASE_PATH"], "Test cafe", address="Original",
