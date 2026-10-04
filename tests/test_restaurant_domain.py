@@ -104,3 +104,47 @@ def test_saved_entry_requires_existing_restaurant_and_valid_status(database_file
         save_existing_restaurant(database_file, 999)
     with closing(sqlite3.connect(database_file)) as connection:
         assert connection.execute("SELECT COUNT(*) FROM saved_restaurants").fetchone()[0] == 0
+
+
+def test_catalog_filters_can_be_combined(database_file):
+    first_id = add_restaurant(
+        database_file, "Alpha", category_name="Italian", city="Madrid",
+        price=2, rating=4.5, status="visited",
+    )
+    add_restaurant(
+        database_file, "Beta", category_name="Sushi", city="Barcelona",
+        price=3, rating=3, status="want_to_go",
+    )
+    unsaved_id = add_restaurant(
+        database_file, "Gamma", category_name="Italian", city="Madrid", price=1,
+    )
+    saved_id = next(
+        place["saved_id"] for place in list_saved_restaurants(database_file)
+        if place["id"] == unsaved_id
+    )
+    remove_restaurant(database_file, saved_id)
+
+    def ids(**filters):
+        return [place["id"] for place in list_all_restaurants(database_file, **filters)]
+
+    assert ids(category="ital") == [first_id, unsaved_id]
+    assert ids(city="MAD") == [first_id, unsaved_id]
+    assert ids(price="2") == [first_id]
+    assert ids(min_rating="4") == [first_id]
+    assert ids(status="visited") == [first_id]
+    assert ids(status="unsaved") == [unsaved_id]
+    assert ids(category="%") == []
+    assert ids(city="Madrid", price="2", min_rating="4", status="visited") == [first_id]
+    assert ids(city="Madrid", status="want_to_go") == []
+
+
+@pytest.mark.parametrize("filters", [
+    {"price": "0"},
+    {"min_rating": "bad"},
+    {"min_rating": "nan"},
+    {"min_rating": "6"},
+    {"status": "saved"},
+])
+def test_invalid_catalog_filter_is_rejected(database_file, filters):
+    with pytest.raises(ValueError):
+        list_all_restaurants(database_file, **filters)

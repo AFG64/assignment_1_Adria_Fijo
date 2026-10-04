@@ -119,19 +119,54 @@ def list_saved_restaurants(database_path):
     return [dict(row) for row in rows]
 
 
-def list_all_restaurants(database_path):
-    """Return all restaurant rows, whether or not they are saved."""
+def list_all_restaurants(database_path, category="", city="", price="", min_rating="", status=""):
+    """Return catalog rows matching optional restaurant and saved-list filters."""
+    conditions = []
+    values = []
+
+    if category.strip():
+        conditions.append("instr(lower(r.category_name), lower(?)) > 0")
+        values.append(category.strip())
+    if city.strip():
+        conditions.append("instr(lower(r.city), lower(?)) > 0")
+        values.append(city.strip())
+    if str(price).strip():
+        if str(price).strip() not in ("1", "2", "3", "4"):
+            raise ValueError("Price must be from 1 to 4.")
+        conditions.append("r.price = ?")
+        values.append(int(price))
+    if str(min_rating).strip():
+        try:
+            rating = float(min_rating)
+        except ValueError as error:
+            raise ValueError("Minimum rating must be from 0 to 5.") from error
+        if not math.isfinite(rating) or not 0 <= rating <= 5:
+            raise ValueError("Minimum rating must be from 0 to 5.")
+        conditions.append("s.rating >= ?")
+        values.append(rating)
+    if status:
+        if status == "unsaved":
+            conditions.append("s.id IS NULL")
+        elif status in ("want_to_go", "visited"):
+            conditions.append("s.status = ?")
+            values.append(status)
+        else:
+            raise ValueError("Choose a valid saved status.")
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
     with closing(connect_database(database_path)) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
-            """
+            f"""
             SELECT r.id, r.title, r.category_name, r.city, r.price,
                    r.total_score, s.id AS saved_id,
                    s.status AS saved_status, s.rating AS personal_rating
             FROM restaurants AS r
             LEFT JOIN saved_restaurants AS s ON s.restaurant_id = r.id
+            {where_clause}
             ORDER BY r.title COLLATE NOCASE, r.id
-            """
+            """,
+            values,
         ).fetchall()
     return [dict(row) for row in rows]
 
