@@ -11,7 +11,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from database import database_path, initialize_database
 
 from .bill_files import MAX_BILL_BYTES, remove_bill_file, store_bill_file, stored_bill_path
-from .dining_history import add_bill, add_visit, get_bill_path, get_visit, list_bill_paths, list_visits
+from .dining_history import add_bill, add_visit, add_visit_item, get_bill_path, get_visit, list_bill_paths, list_visits
 from .geocoding import geocode_address, search_query
 from .restaurant_domain import (
     add_restaurant,
@@ -54,6 +54,8 @@ def create_app():
             visit_error=context.get("visit_error"),
             bill_error=context.get("bill_error"),
             bill_error_visit_id=context.get("bill_error_visit_id"),
+            item_error=context.get("item_error"),
+            item_error_visit_id=context.get("item_error_visit_id"),
             location_error=context.get("location_error"),
             location_values=context.get("location_values", {}),
             location_mode=context.get("location_mode", "search"),
@@ -246,6 +248,26 @@ def create_app():
             raise
 
         return redirect(url_for("restaurant_details", restaurant_id=restaurant_id, bill_added=visit_id) + f"#visit-{visit_id}")
+
+    @app.post("/restaurants/<int:restaurant_id>/visits/<int:visit_id>/items")
+    def create_visit_item(restaurant_id, visit_id):
+        restaurant = get_restaurant_details(app.config["DATABASE_PATH"], restaurant_id)
+        if (restaurant is None or restaurant["saved_id"] is None
+                or get_visit(app.config["DATABASE_PATH"], restaurant["saved_id"], visit_id) is None):
+            abort(404, description="Visit not found for this restaurant.")
+        try:
+            add_visit_item(
+                app.config["DATABASE_PATH"], visit_id,
+                request.form.get("item_name"), request.form.get("quantity"),
+                request.form.get("unit_price"),
+            )
+        except ValueError as error:
+            return render_restaurant_details(
+                restaurant_id, item_error=str(error), item_error_visit_id=visit_id,
+            ), 400
+        except sqlite3.IntegrityError:
+            abort(404, description="Visit no longer exists.")
+        return redirect(url_for("restaurant_details", restaurant_id=restaurant_id) + f"#visit-{visit_id}")
 
     @app.get("/restaurants/<int:restaurant_id>/visits/<int:visit_id>/bills/<int:bill_id>")
     def download_bill(restaurant_id, visit_id, bill_id):

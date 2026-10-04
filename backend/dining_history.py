@@ -1,4 +1,5 @@
 from contextlib import closing
+import math
 import sqlite3
 
 from database import connect_database
@@ -25,7 +26,7 @@ def add_visit(database_path, saved_restaurant_id, visit_date, rating=None, notes
 
 
 def list_visits(database_path, saved_restaurant_id):
-    """Return a saved restaurant's visits and attached bills, newest first."""
+    """Return a saved restaurant's visits, bills, and ordered items."""
     with closing(connect_database(database_path)) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
@@ -36,6 +37,16 @@ def list_visits(database_path, saved_restaurant_id):
             LEFT JOIN bills AS b ON b.visit_id = v.id
             WHERE v.saved_restaurant_id = ?
             ORDER BY v.visit_date DESC, v.id DESC, b.id DESC
+            """,
+            (saved_restaurant_id,),
+        ).fetchall()
+        item_rows = connection.execute(
+            """
+            SELECT i.id, i.visit_id, i.item_name, i.quantity, i.unit_price
+            FROM visit_items AS i
+            JOIN visits AS v ON v.id = i.visit_id
+            WHERE v.saved_restaurant_id = ?
+            ORDER BY i.id DESC
             """,
             (saved_restaurant_id,),
         ).fetchall()
@@ -51,6 +62,7 @@ def list_visits(database_path, saved_restaurant_id):
                 "rating": row["rating"],
                 "notes": row["notes"],
                 "bills": [],
+                "items": [],
             }
             by_id[row["id"]] = visit
             visits.append(visit)
@@ -60,7 +72,46 @@ def list_visits(database_path, saved_restaurant_id):
                 "image_path": row["image_path"],
                 "uploaded_at": row["uploaded_at"],
             })
+    for row in item_rows:
+        by_id[row["visit_id"]]["items"].append({
+            "id": row["id"],
+            "item_name": row["item_name"],
+            "quantity": row["quantity"],
+            "unit_price": row["unit_price"],
+        })
     return visits
+
+
+def add_visit_item(database_path, visit_id, item_name, quantity=1, unit_price=None):
+    """Record a dish ordered on an existing visit."""
+    if not visit_id:
+        raise ValueError("Visit ID is required.")
+    item_name = (item_name or "").strip()
+    if not item_name:
+        raise ValueError("Item name is required.")
+    try:
+        quantity = int(quantity)
+    except (TypeError, ValueError) as error:
+        raise ValueError("Quantity must be a positive whole number.") from error
+    if quantity < 1:
+        raise ValueError("Quantity must be a positive whole number.")
+    if unit_price in (None, ""):
+        unit_price = None
+    else:
+        try:
+            unit_price = float(unit_price)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Unit price must be zero or more.") from error
+        if not math.isfinite(unit_price) or unit_price < 0:
+            raise ValueError("Unit price must be zero or more.")
+
+    with closing(connect_database(database_path)) as connection, connection:
+        cursor = connection.execute(
+            """INSERT INTO visit_items (visit_id, item_name, quantity, unit_price)
+               VALUES (?, ?, ?, ?)""",
+            (visit_id, item_name, quantity, unit_price),
+        )
+    return cursor.lastrowid
 
 
 def get_visit(database_path, saved_restaurant_id, visit_id):

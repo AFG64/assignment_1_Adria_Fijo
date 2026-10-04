@@ -8,6 +8,7 @@ import pytest
 from backend.dining_history import (
     add_bill,
     add_visit,
+    add_visit_item,
     get_bill_path,
     get_visit,
     list_bill_paths,
@@ -49,6 +50,7 @@ def test_recording_visit_marks_restaurant_visited(database_file):
         "rating": 4.5,
         "notes": "Good lunch",
         "bills": [],
+        "items": [],
     }]
 
 
@@ -81,6 +83,35 @@ def test_bill_and_visit_lookups_check_restaurant_ownership(database_file):
     assert get_bill_path(database_file, other_saved_id, visit_id, bill_id) is None
     assert get_bill_path(database_file, first_saved_id, visit_id, 999) is None
     assert list_bill_paths(database_file, other_saved_id) == []
+
+
+def test_ordered_items_stay_with_their_visit(database_file):
+    _, saved_id = add_saved_restaurant(database_file, "Corner Cafe")
+    first_visit = add_visit(database_file, saved_id, "2026-09-01")
+    second_visit = add_visit(database_file, saved_id, "2026-10-01")
+    add_visit_item(database_file, first_visit, "Coffee")
+    item_id = add_visit_item(database_file, second_visit, "  Pasta  ", 2, "12.50")
+
+    visits = list_visits(database_file, saved_id)
+    assert visits[0]["items"] == [{
+        "id": item_id, "item_name": "Pasta", "quantity": 2, "unit_price": 12.5,
+    }]
+    assert visits[1]["items"][0]["item_name"] == "Coffee"
+
+
+@pytest.mark.parametrize("values", [
+    ("", 1, None),
+    ("Pasta", 0, None),
+    ("Pasta", "half", None),
+    ("Pasta", 1, "-1"),
+    ("Pasta", 1, "nan"),
+])
+def test_invalid_ordered_item_is_not_saved(database_file, values):
+    _, saved_id = add_saved_restaurant(database_file, "Corner Cafe")
+    visit_id = add_visit(database_file, saved_id, "2026-10-01")
+    with pytest.raises(ValueError):
+        add_visit_item(database_file, visit_id, *values)
+    assert list_visits(database_file, saved_id)[0]["items"] == []
 
 
 def test_removing_saved_restaurant_cascades_to_visits_and_bills(database_file):
