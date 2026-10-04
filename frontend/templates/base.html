@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}DevOps Food{% endblock %}</title>
+    <title>{% block title %}Picky{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
@@ -11,7 +12,7 @@
       <header class="page-header">
         <p class="eyebrow">Personal restaurant journal</p>
         <div class="page-title-row">
-          <h1>DevOps Food</h1>
+          <h1>Picky</h1>
           {% block header_action %}
             <a class="add-toggle" href="{{ url_for('home', add=1) }}" aria-label="Add a restaurant" title="Add a restaurant"><span aria-hidden="true">+</span></a>
           {% endblock %}

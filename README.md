@@ -1,6 +1,6 @@
-# DevOps Food
+# Picky
 
-DevOps Food is an approved personal restaurant discovery and dining-history app for Individual Assignment 1. One Flask process serves the UI and two SQLite-backed feature domains: restaurant collection and dining history. The app supports saved places, catalog filters, location lookup, dated visits, ordered items, and bill uploads.
+Picky is an approved personal restaurant discovery and dining-history app for Individual Assignment 1. One Flask process serves the UI and two SQLite-backed feature domains: restaurant collection and dining history. The app supports saved places, catalog filters, location lookup, dated visits, ordered items, and bill uploads.
 
 ## Run locally
 
@@ -26,9 +26,17 @@ python app.py
 
 `GET /health` returns `{"status":"ok"}`. The process binds to `0.0.0.0` and uses `PORT` (default `8000`). Set `DATA_DIR` to change the directory containing `devops_food.sqlite3`; the default is `./data/devops_food.sqlite3`, relative to the directory where you start the app. The database is initialized on startup without a manual migration step. Starting the app does not require an external service. The schema is in [`database/schema.sql`](database/schema.sql) and its diagram is in [`docs/SCHEMA.md`](docs/SCHEMA.md).
 
-Use the **+** button beside **DevOps Food** to open the add form. It asks for a restaurant name and optional category, city, location or street address, price level, personal rating, notes, and saved status. When an address is supplied, the app looks up its latitude and longitude and stores both with the address. On other pages, the + button returns to the home page with the form open. After saving, the new restaurant appears in the saved list. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Use its filters to narrow the catalog by cuisine, city, price level, minimum personal rating, or saved status. The filters can be combined; the minimum rating applies only to saved restaurants that have a personal rating. Choose **Clear filters** to see everything again. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
+To add the 14 sourced Madrid restaurants to the catalog, run this once from the repository root with the same `DATA_DIR` used by the app:
 
-Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. It shows available restaurant facts and, when the restaurant is saved, its personal status, rating, notes, return preference, and visit history. Its Location section shows the stored address and coordinates, opens the location in OpenStreetMap, and lets you add or change the address. A full address with city and postal code works best. The app uses it as entered, even if the restaurant has a different saved city; for short addresses, it adds the saved city. If lookup fails or points to the wrong place, expand **Enter coordinates manually** and save a place name, latitude, and longitude. Check the map pin after either method because the search service can return a street or another place with a similar name. Use **Record a visit** to enter a date, optional visit rating, and notes. Recording a visit marks the saved restaurant as Visited. Under each visit, **Add what you ordered** saves a dish or drink with quantity and optional unit price. **Attach a bill** accepts a PNG, JPEG, or PDF file up to 5 MB and then offers a download link. Missing restaurant IDs return a 404 page.
+```sh
+python -m database.seed_madrid
+```
+
+The importer can be run again: it skips matching Madrid names and leaves saved entries and visits alone. It stores names, cuisines, and street addresses from the Madrid tourism pages linked in [`database/seed_madrid.py`](database/seed_madrid.py). It does not invent ratings, prices, or map coordinates, and it does not send bulk geocoding requests. New rows appear under **All restaurants** as **Not saved**; save any you want to track.
+
+Use the **+** button beside **Picky** to open the add form. It asks for a restaurant name and optional category, city, location or street address, price level, personal rating, notes, and saved status. When an address is supplied, the app looks up its latitude and longitude and stores both with the address. On other pages, the + button returns to the home page with the form open. After saving, the new restaurant appears in the saved list. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Expand **Filters** to narrow the catalog by cuisine, city, price level, minimum personal rating, or saved status, and collapse it to focus on the list. Active filters stay visible when the page reloads. The filters can be combined; the minimum rating applies only to saved restaurants that have a personal rating. Choose **Clear filters** to see everything again. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
+
+Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. An unsaved restaurant can be added to your list directly on that page; after saving, you stay on its details page. The page shows available restaurant facts and, when saved, its personal status, rating, notes, return preference, and visit history. Its Location section shows the stored address and coordinates, opens the location in OpenStreetMap, and lets you add or change the address. A full address with city and postal code works best. The app uses it as entered, even if the restaurant has a different saved city; for short addresses, it adds the saved city. If lookup fails or points to the wrong place, expand **Enter coordinates manually** and save a place name, latitude, and longitude. Check the map pin after either method because the search service can return a street or another place with a similar name. Use **Record a visit** to enter a date, optional visit rating, and notes. Recording a visit marks the saved restaurant as Visited. Under each visit, **Add what you ordered** saves a dish or drink with quantity and optional unit price. **Attach a bill** accepts a PNG, JPEG, or PDF file up to 5 MB and then offers a download link. Missing restaurant IDs return a 404 page.
 
 On a saved restaurant's detail page, expand **Edit your saved details** to change or clear your overall rating, private notes, and whether you would go back.
 
@@ -41,7 +49,7 @@ If you created a database with the earlier three-table scaffold, choose a new em
 Example configuration:
 
 ```sh
-DATA_DIR=/tmp/devops-food-data PORT=8080 python app.py
+DATA_DIR=/tmp/picky-data PORT=8080 python app.py
 ```
 
 ## Project layout
@@ -84,7 +92,7 @@ The planned ownership, business rules, and interactions are defined in [`docs/DO
 - [`ADR.md`](ADR.md): five dated architecture and scope decisions.
 - [`AI_USAGE.md`](AI_USAGE.md): AI interaction log; the student's explanation needs review.
 - [`docs/REPORT.md`](docs/REPORT.md): report source with architecture and database diagrams.
-- [`output/pdf/devops-food-assignment-1-report.pdf`](output/pdf/devops-food-assignment-1-report.pdf): four-page submission report.
+- [`output/pdf/picky-assignment-1-report.pdf`](output/pdf/picky-assignment-1-report.pdf): four-page submission report.
 
 Run the tests and measure coverage of the two backend feature domains with:
 
@@ -92,4 +100,4 @@ Run the tests and measure coverage of the two backend feature domains with:
 python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing
 ```
 
-Measured on 2026-10-04: **65 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.
+Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.

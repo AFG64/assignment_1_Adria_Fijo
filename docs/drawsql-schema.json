@@ -1,0 +1,397 @@
+{
+    "strategy": "merge",
+    "groups": [
+        {
+            "name": "Restaurant collection"
+        },
+        {
+            "name": "Dining history"
+        }
+    ],
+    "tables": [
+        {
+            "name": "bills",
+            "parent_name": "Dining history",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "visit_id",
+                    "type": "integer",
+                    "is_nullable": false
+                },
+                {
+                    "name": "image_path",
+                    "type": "text",
+                    "is_nullable": false
+                },
+                {
+                    "name": "extracted_total",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "extracted_text",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "uploaded_at",
+                    "type": "timestamp",
+                    "is_nullable": true,
+                    "default": "CURRENT_TIMESTAMP"
+                }
+            ]
+        },
+        {
+            "name": "restaurant_emails",
+            "parent_name": "Restaurant collection",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "restaurant_id",
+                    "type": "integer",
+                    "is_nullable": false
+                },
+                {
+                    "name": "email",
+                    "type": "text",
+                    "is_nullable": false
+                }
+            ]
+        },
+        {
+            "name": "restaurant_images",
+            "parent_name": "Restaurant collection",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "restaurant_id",
+                    "type": "integer",
+                    "is_nullable": false
+                },
+                {
+                    "name": "image_url",
+                    "type": "text",
+                    "is_nullable": false
+                }
+            ]
+        },
+        {
+            "name": "restaurants",
+            "parent_name": "Restaurant collection",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "is_nullable": false
+                },
+                {
+                    "name": "category_name",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "address",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "street",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "city",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "postal_code",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "state",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "country_code",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "latitude",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "longitude",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "phone",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "website",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "total_score",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "reviews_count",
+                    "type": "integer",
+                    "is_nullable": true,
+                    "default": "0"
+                },
+                {
+                    "name": "price",
+                    "type": "integer",
+                    "is_nullable": true
+                },
+                {
+                    "name": "menu",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "image_url",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "is_nullable": true,
+                    "default": "CURRENT_TIMESTAMP"
+                }
+            ]
+        },
+        {
+            "name": "saved_restaurants",
+            "parent_name": "Restaurant collection",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "restaurant_id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_unique_key": true
+                },
+                {
+                    "name": "status",
+                    "type": "text",
+                    "is_nullable": false,
+                    "default": "'want_to_go'"
+                },
+                {
+                    "name": "rating",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "notes",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "would_go_back",
+                    "type": "integer",
+                    "is_nullable": true
+                },
+                {
+                    "name": "saved_at",
+                    "type": "timestamp",
+                    "is_nullable": true,
+                    "default": "CURRENT_TIMESTAMP"
+                }
+            ]
+        },
+        {
+            "name": "visit_items",
+            "parent_name": "Dining history",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "visit_id",
+                    "type": "integer",
+                    "is_nullable": false
+                },
+                {
+                    "name": "item_name",
+                    "type": "text",
+                    "is_nullable": false
+                },
+                {
+                    "name": "quantity",
+                    "type": "integer",
+                    "is_nullable": true,
+                    "default": "1"
+                },
+                {
+                    "name": "unit_price",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "rating",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "notes",
+                    "type": "text",
+                    "is_nullable": true
+                }
+            ]
+        },
+        {
+            "name": "visits",
+            "parent_name": "Dining history",
+            "columns": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "is_nullable": false,
+                    "is_primary_key": true,
+                    "is_auto_increment": true
+                },
+                {
+                    "name": "saved_restaurant_id",
+                    "type": "integer",
+                    "is_nullable": false
+                },
+                {
+                    "name": "visit_date",
+                    "type": "date",
+                    "is_nullable": true,
+                    "default": "CURRENT_DATE"
+                },
+                {
+                    "name": "rating",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "notes",
+                    "type": "text",
+                    "is_nullable": true
+                },
+                {
+                    "name": "total_amount",
+                    "type": "float",
+                    "is_nullable": true
+                },
+                {
+                    "name": "number_of_people",
+                    "type": "integer",
+                    "is_nullable": true
+                },
+                {
+                    "name": "would_go_back",
+                    "type": "integer",
+                    "is_nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "type": "timestamp",
+                    "is_nullable": true,
+                    "default": "CURRENT_TIMESTAMP"
+                }
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "type": "one-to-many",
+            "source_table": "visits",
+            "source_column": "id",
+            "target_table": "bills",
+            "target_column": "visit_id"
+        },
+        {
+            "type": "one-to-many",
+            "source_table": "restaurants",
+            "source_column": "id",
+            "target_table": "restaurant_emails",
+            "target_column": "restaurant_id"
+        },
+        {
+            "type": "one-to-many",
+            "source_table": "restaurants",
+            "source_column": "id",
+            "target_table": "restaurant_images",
+            "target_column": "restaurant_id"
+        },
+        {
+            "type": "one-to-one",
+            "source_table": "restaurants",
+            "source_column": "id",
+            "target_table": "saved_restaurants",
+            "target_column": "restaurant_id"
+        },
+        {
+            "type": "one-to-many",
+            "source_table": "visits",
+            "source_column": "id",
+            "target_table": "visit_items",
+            "target_column": "visit_id"
+        },
+        {
+            "type": "one-to-many",
+            "source_table": "saved_restaurants",
+            "source_column": "id",
+            "target_table": "visits",
+            "target_column": "saved_restaurant_id"
+        }
+    ]
+}

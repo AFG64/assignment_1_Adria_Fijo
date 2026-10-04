@@ -1,11 +1,13 @@
 {% extends "base.html" %}
-{% block title %}All restaurants · DevOps Food{% endblock %}
+{% block title %}All restaurants · Picky{% endblock %}
 {% block intro %}Every restaurant in the catalog, whether saved or not.{% endblock %}
 {% block content %}
   <section class="panel" aria-labelledby="all-heading">
     <h2 id="all-heading">All restaurants</h2>
     {% if saved %}<p class="message success" role="status">Restaurant added to your saved list.</p>{% endif %}
     {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
+    <details class="filter-panel" {% if has_filters or error %}open{% endif %}>
+      <summary>Filters{% if has_filters %} <span class="filter-active">Active</span>{% endif %}</summary>
     <form class="filter-form" method="get" action="{{ url_for('all_restaurants') }}">
       <div class="field-grid">
         <div class="field">
@@ -45,6 +47,7 @@
         <a class="filter-clear" href="{{ url_for('all_restaurants') }}">Clear filters</a>
       </div>
     </form>
+    </details>
     <p class="list-summary">{{ restaurants|length }} restaurant{% if restaurants|length != 1 %}s{% endif %} {% if has_filters %}match{% if restaurants|length == 1 %}es{% endif %} your filters{% else %}in the catalog{% endif %}</p>
     {% if restaurants %}
       <ul class="restaurant-list">
@@ -59,6 +62,7 @@
                 {% if restaurant.total_score is not none %} · General score {{ restaurant.total_score }}/5{% endif %}
                 {% if restaurant.personal_rating is not none %} · Your rating {{ restaurant.personal_rating }}/5{% endif %}
               </p>
+              {% if restaurant.street %}<p class="restaurant-address">{{ restaurant.street }}</p>{% endif %}
             </a>
             {% if restaurant.saved_id is not none %}
               <span class="status">{{ 'Visited' if restaurant.saved_status == 'visited' else 'Want to go' }}</span>

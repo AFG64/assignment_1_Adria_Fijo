@@ -87,3 +87,25 @@ def test_saved_details_form_requires_saved_restaurant_and_valid_rating(app):
         data={"rating": "4", "notes": "", "would_go_back": ""},
     )
     assert unsaved.status_code == 404
+
+
+def test_unsaved_detail_can_be_saved_without_leaving_page(app):
+    path = app.config["DATABASE_PATH"]
+    restaurant_id = add_restaurant(path, "Corner Cafe")
+    saved_id = get_restaurant_details(path, restaurant_id)["saved_id"]
+    remove_restaurant(path, saved_id)
+    client = app.test_client()
+
+    detail = client.get(f"/restaurants/{restaurant_id}")
+    assert b"Save to my list" in detail.data
+    assert b'name="return_to" value="details"' in detail.data
+
+    response = client.post(
+        f"/restaurants/{restaurant_id}/save",
+        data={"status": "visited", "return_to": "details"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Save to my list" not in response.data
+    assert b"Record a visit" in response.data
+    assert get_restaurant_details(path, restaurant_id)["saved_status"] == "visited"

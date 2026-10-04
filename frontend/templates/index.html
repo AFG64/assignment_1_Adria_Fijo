@@ -112,7 +112,7 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="empty-state">No restaurants saved yet. Use the + button beside the title to add one.</p>
+          <p class="empty-state">No restaurants saved yet. <a href="{{ url_for('all_restaurants') }}">Browse the catalog</a> or use the + button to add your own.</p>
         {% endif %}
       </section>
 {% endblock %}

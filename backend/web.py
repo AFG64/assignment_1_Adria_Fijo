@@ -64,6 +64,7 @@ def create_app():
             saved_error=context.get("saved_error"),
             saved_values=context.get("saved_values"),
             saved_updated=request.args.get("saved_updated"),
+            catalog_save_error=context.get("catalog_save_error"),
             visit_added=request.args.get("visit_added"),
             bill_added=request.args.get("bill_added"),
         )
@@ -310,6 +311,7 @@ def create_app():
 
     @app.post("/restaurants/<int:restaurant_id>/save")
     def save_restaurant(restaurant_id):
+        return_to_details = request.form.get("return_to") == "details"
         try:
             save_existing_restaurant(
                 app.config["DATABASE_PATH"],
@@ -324,7 +326,12 @@ def create_app():
             else:
                 abort(404, description="Restaurant not found.")
         else:
+            if return_to_details:
+                return redirect(url_for("restaurant_details", restaurant_id=restaurant_id) + "#saved-details")
             return redirect(url_for("all_restaurants", saved=restaurant_id))
+
+        if return_to_details:
+            return render_restaurant_details(restaurant_id, catalog_save_error=message), status_code
 
         return render_template(
             "all_restaurants.html",

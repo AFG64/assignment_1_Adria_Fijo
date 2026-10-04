@@ -27,7 +27,7 @@ On 2026-10-03, the location flow was corrected so a complete address is not comb
 
 On 2026-10-04, the All restaurants page gained combinable cuisine, city, price, minimum personal rating, and saved-status filters. Filtering reads the restaurant collection tables and keeps the two backend domain boundary unchanged.
 
-The final 2026-10-04 iterations added ordered items to visits and editable personal details, completed the two remaining architecture decisions, and verified a fresh start with an empty data directory. The test command now passes 65 tests with 97% combined domain coverage.
+The final 2026-10-04 iterations added ordered items to visits and editable personal details, completed the two remaining architecture decisions, and verified a fresh start with an empty data directory. The test command now passes 83 tests with 97% combined domain coverage.
 
 ## Decisions needed before implementation
 
