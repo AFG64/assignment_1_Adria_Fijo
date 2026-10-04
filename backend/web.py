@@ -115,9 +115,26 @@ def create_app():
 
     @app.get("/restaurants")
     def all_restaurants():
+        filters = {
+            name: request.args.get(name, "").strip()
+            for name in ("category", "city", "price", "min_rating", "status")
+        }
+        try:
+            restaurants = list_all_restaurants(app.config["DATABASE_PATH"], **filters)
+        except ValueError as error:
+            return render_template(
+                "all_restaurants.html",
+                restaurants=list_all_restaurants(app.config["DATABASE_PATH"]),
+                filters=filters,
+                has_filters=False,
+                saved=None,
+                error=str(error),
+            ), 400
         return render_template(
             "all_restaurants.html",
-            restaurants=list_all_restaurants(app.config["DATABASE_PATH"]),
+            restaurants=restaurants,
+            filters=filters,
+            has_filters=any(filters.values()),
             saved=request.args.get("saved"),
             error=None,
         )
@@ -269,6 +286,8 @@ def create_app():
         return render_template(
             "all_restaurants.html",
             restaurants=list_all_restaurants(app.config["DATABASE_PATH"]),
+            filters={},
+            has_filters=False,
             saved=None,
             error=message,
         ), status_code
