@@ -16,7 +16,7 @@ Status: Decided
 Context: The approved idea includes saved restaurants and records of actual visits, and the assignment requires two distinct SQLite-backed domains. A restaurant can exist before any visit, while a visit only makes sense for a saved restaurant.
 Decision: Treat saved restaurant facts and filtering as the restaurant collection domain; treat visits, orders, ratings, notes, and bills as the dining-history domain. Connect them by restaurant ID and keep their business rules in separate modules when implemented.
 Alternatives considered: A single restaurant record with one rating, bill, and notes would be smaller, but it would lose the history of repeat visits and make the domains indistinct.
-Consequences: The split gives a clear later service boundary. Rating-based restaurant filtering will need a read-only view of visit ratings, which is a deliberate cross-domain query to isolate when that feature is built.
+Consequences: The split gives a clear later service boundary. The personal-rating filter reads `saved_restaurants.rating` within the restaurant collection; any future analysis of visit ratings would need a deliberate cross-domain read.
 
 ## 3. Implement the supplied single-user SQLite schema
 Date: 2026-09-30

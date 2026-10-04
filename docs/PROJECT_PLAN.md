@@ -13,7 +13,7 @@ The two backend feature domains would be:
 
 The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
-The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited; other editing and filtering are still pending.
+The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited. Filtering was added on 2026-10-04; other editing remains pending.
 
 On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists now link to a detail page backed by that function. The page displays general facts, saved details, and visit history.
 
@@ -24,6 +24,8 @@ The student added `add_visit` and `add_bill` in `backend/dining_history.py` on 2
 On 2026-10-02, Codex added optional location entry and coordinate lookup to the restaurant add form, plus a location editor on the detail page. Address, latitude, and longitude already existed in the student-supplied `restaurants` table, so no schema change was needed. The lookup service caches results under `DATA_DIR` and is used only when the user submits a location.
 
 On 2026-10-03, the location flow was corrected so a complete address is not combined with an unrelated saved city. The detail page also gained manual coordinate entry for locations the search cannot find or matches incorrectly. No schema change was needed.
+
+On 2026-10-04, the All restaurants page gained combinable cuisine, city, price, minimum personal rating, and saved-status filters. Filtering reads the restaurant collection tables and keeps the two backend domain boundary unchanged.
 
 ## Decisions needed before implementation
 

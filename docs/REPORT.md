@@ -14,7 +14,7 @@ The planned model is short iterative development. The first iterations produced 
 
 ## 3. Architecture overview
 
-The current app has one Flask process, one SQLite database file, bill files, and an address-lookup cache under `DATA_DIR`. Restaurant creation through a form opened by the + control, saving an existing catalog row, saved-list removal, and separate saved, full-catalog, and detail views are implemented. The location forms call an external address lookup only on submission and store the returned latitude and longitude in the existing restaurant row. A complete address is searched without adding the restaurant's saved city; the detail page also accepts manual coordinates if search fails or matches the wrong place. The detail page records visits and uploads and downloads bills; ordered items and other visit fields are planned. Recheck this diagram against the final submission.
+The current app has one Flask process, one SQLite database file, bill files, and an address-lookup cache under `DATA_DIR`. Restaurant creation through a form opened by the + control, saving an existing catalog row, saved-list removal, and separate saved, full-catalog, and detail views are implemented. The catalog page filters by cuisine, city, price, personal rating, and saved status. The location forms call an external address lookup only on submission and store the returned latitude and longitude in the existing restaurant row. A complete address is searched without adding the restaurant's saved city; the detail page also accepts manual coordinates if search fails or matches the wrong place. The detail page records visits and uploads and downloads bills; ordered items and other visit fields are planned. Recheck this diagram against the final submission.
 
 ```mermaid
 flowchart LR
@@ -119,7 +119,7 @@ erDiagram
 
 ## 5. Testing, deployment contract, and reflection
 
-On 2026-10-03, `python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing` passed 38 tests and measured 97% combined coverage of the two domain modules: 95% for restaurant collection and 100% for dining history. The domain tests exercise validation, persistence, saved-list removal, visits, bill ownership, and SQLite cascades. Route tests use Flask's test client and mock the external location lookup. Coverage does not measure every UI path or prove that a map result points to the intended building. Before submission, confirm the fresh-start deployment contract and describe the tradeoffs around uploads, filtering, and privacy in the student's own words.
+On 2026-10-04, `python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing` passed 48 tests and measured 97% combined coverage of the two domain modules: 96% for restaurant collection and 100% for dining history. The domain tests exercise validation, persistence, saved-list removal, catalog filters, visits, bill ownership, and SQLite cascades. Route tests use Flask's test client and mock the external location lookup. Coverage does not measure every UI path or prove that a map result points to the intended building. Before submission, confirm the fresh-start deployment contract and describe the tradeoffs around uploads, filtering, and privacy in the student's own words.
 
 ## AI disclosure statement
 

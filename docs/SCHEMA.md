@@ -88,7 +88,7 @@ The location feature fills the existing `restaurants.address`, `restaurants.lati
 
 Removing a `saved_restaurants` row leaves its `restaurants` row in place, so the full catalog can still display it. The linked visits, bills, and items cascade away.
 
-The three restaurant-related ratings have distinct meanings: `restaurants.total_score` is a general score stored with restaurant details, `saved_restaurants.rating` is the user's overall assessment, and `visits.rating` is one visit's assessment. `visit_items.rating` is for a particular dish. The planned personal-rating filter uses `saved_restaurants.rating`.
+The three restaurant-related ratings have distinct meanings: `restaurants.total_score` is a general score stored with restaurant details, `saved_restaurants.rating` is the user's overall assessment, and `visits.rating` is one visit's assessment. `visit_items.rating` is for a particular dish. The catalog's minimum personal-rating filter uses `saved_restaurants.rating`.
 
 SQLite foreign keys are enabled by `database.connect_database` for each connection, and all foreign keys in `database/schema.sql` cascade on deletion. The database is created on startup. Restaurant saving and listing, visit recording, and bill uploads are implemented. Bill files are stored under `DATA_DIR/bills/`, while `bills.image_path` stores a relative path. The UI removes managed bill files when a saved restaurant is removed; SQLite itself only deletes the bill rows. The `extracted_total` and `extracted_text` columns are optional fields from the supplied schema, not evidence that receipt extraction exists.
 
