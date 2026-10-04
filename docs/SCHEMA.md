@@ -2,6 +2,8 @@
 
 The student supplied the table and column design in the pasted schema. `database/schema.sql` is the executable version used by `database.initialize_database` at startup. It creates **seven tables** in `DATA_DIR/devops_food.sqlite3` (default `./data/devops_food.sqlite3`). There is no `users` table or `user_id`: this is a single-user app.
 
+[Explore the editable diagram in DrawSQL](https://drawsql.app/draw?t=6be2c641-7e9a-43f3-b8b5-2012cfbc8a5a&utm_source=mcp). It shows the seven tables, 55 columns, and six foreign-key relationships in two groups: restaurant collection and dining history. DrawSQL displays PostgreSQL-equivalent type labels because its canvas does not offer SQLite; the actual database is defined by `database/schema.sql`. The schema patch used to create the online diagram is saved as [`drawsql-schema.json`](drawsql-schema.json).
+
 ```mermaid
 erDiagram
     restaurants ||--o| saved_restaurants : "saved once"

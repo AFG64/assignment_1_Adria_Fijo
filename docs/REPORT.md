@@ -46,7 +46,7 @@ Address lookup occurs only when the user submits a location. It uses an identify
 
 ## 4. Database model
 
-I supplied the single-user schema, which was implemented in `database/schema.sql`. The diagram below matches the seven tables created by SQLite. `SCHEMA.md` explains the columns and relationships in more detail.
+I supplied the seven-table SQLite schema in `database/schema.sql`. The diagram below shows its relationships; [open the editable DrawSQL version](https://drawsql.app/draw?t=6be2c641-7e9a-43f3-b8b5-2012cfbc8a5a&utm_source=mcp) to inspect all 55 columns. DrawSQL uses PostgreSQL-equivalent type labels; the SQLite file remains authoritative. `SCHEMA.md` gives further detail.
 
 ```mermaid
 erDiagram
