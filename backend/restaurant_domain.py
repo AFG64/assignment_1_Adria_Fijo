@@ -59,7 +59,7 @@ def add_restaurant(
 
     address, latitude, longitude = _location_values(address, latitude, longitude)
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             INSERT INTO restaurants
@@ -90,7 +90,7 @@ def update_restaurant_location(database_path, restaurant_id, address, latitude, 
     if not address or latitude is None:
         raise ValueError("Enter a location that can be found on a map.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             UPDATE restaurants
@@ -101,6 +101,43 @@ def update_restaurant_location(database_path, restaurant_id, address, latitude, 
         )
         if cursor.rowcount == 0:
             raise ValueError("Restaurant not found.")
+
+
+def update_saved_details(database_path, saved_id, rating, notes, would_go_back):
+    """Edit the personal details of a saved restaurant."""
+    if not saved_id:
+        raise ValueError("Saved restaurant ID is required.")
+    if rating in (None, ""):
+        rating = None
+    else:
+        try:
+            rating = float(rating)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Rating must be from 0 to 5.") from error
+        if not math.isfinite(rating) or not 0 <= rating <= 5:
+            raise ValueError("Rating must be from 0 to 5.")
+
+    notes = (notes or "").strip()
+    if len(notes) > 2000:
+        raise ValueError("Notes must be 2000 characters or fewer.")
+    notes = notes or None
+
+    if would_go_back in (None, ""):
+        would_go_back = None
+    elif str(would_go_back) in ("0", "1"):
+        would_go_back = int(would_go_back)
+    else:
+        raise ValueError("Choose Yes, No, or Not sure yet.")
+
+    with closing(connect_database(database_path)) as connection, connection:
+        cursor = connection.execute(
+            """UPDATE saved_restaurants
+               SET rating = ?, notes = ?, would_go_back = ?
+               WHERE id = ?""",
+            (rating, notes, would_go_back, saved_id),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError("Saved restaurant not found.")
 
 
 def list_saved_restaurants(database_path):
@@ -119,19 +156,54 @@ def list_saved_restaurants(database_path):
     return [dict(row) for row in rows]
 
 
-def list_all_restaurants(database_path):
-    """Return all restaurant rows, whether or not they are saved."""
+def list_all_restaurants(database_path, category="", city="", price="", min_rating="", status=""):
+    """Return catalog rows matching optional restaurant and saved-list filters."""
+    conditions = []
+    values = []
+
+    if category.strip():
+        conditions.append("instr(lower(r.category_name), lower(?)) > 0")
+        values.append(category.strip())
+    if city.strip():
+        conditions.append("instr(lower(r.city), lower(?)) > 0")
+        values.append(city.strip())
+    if str(price).strip():
+        if str(price).strip() not in ("1", "2", "3", "4"):
+            raise ValueError("Price must be from 1 to 4.")
+        conditions.append("r.price = ?")
+        values.append(int(price))
+    if str(min_rating).strip():
+        try:
+            rating = float(min_rating)
+        except ValueError as error:
+            raise ValueError("Minimum rating must be from 0 to 5.") from error
+        if not math.isfinite(rating) or not 0 <= rating <= 5:
+            raise ValueError("Minimum rating must be from 0 to 5.")
+        conditions.append("s.rating >= ?")
+        values.append(rating)
+    if status:
+        if status == "unsaved":
+            conditions.append("s.id IS NULL")
+        elif status in ("want_to_go", "visited"):
+            conditions.append("s.status = ?")
+            values.append(status)
+        else:
+            raise ValueError("Choose a valid saved status.")
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
     with closing(connect_database(database_path)) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
-            """
+            f"""
             SELECT r.id, r.title, r.category_name, r.city, r.price,
                    r.total_score, s.id AS saved_id,
                    s.status AS saved_status, s.rating AS personal_rating
             FROM restaurants AS r
             LEFT JOIN saved_restaurants AS s ON s.restaurant_id = r.id
+            {where_clause}
             ORDER BY r.title COLLATE NOCASE, r.id
-            """
+            """,
+            values,
         ).fetchall()
     return [dict(row) for row in rows]
 
@@ -142,7 +214,7 @@ def remove_restaurant(database_path, saved_restaurant_id: int) -> None:
     if not saved_restaurant_id:
         raise ValueError("Saved restaurant ID is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         cursor = connection.execute(
             "DELETE FROM saved_restaurants WHERE id = ?",
             (saved_restaurant_id,),
@@ -164,7 +236,7 @@ def save_existing_restaurant(database_path, restaurant_id, status="want_to_go"):
     if status not in ("want_to_go", "visited"):
         raise ValueError("Invalid status.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection, connection:
         connection.execute(
             """
             INSERT INTO saved_restaurants (restaurant_id, status)
@@ -182,7 +254,7 @@ def get_restaurant_details(database_path, restaurant_id):
     if not restaurant_id:
             raise ValueError("Restaurant ID is required.")
 
-    with connect_database(database_path) as connection:
+    with closing(connect_database(database_path)) as connection:
         connection.row_factory = sqlite3.Row
         row = connection.execute(
             """SELECT r.*,

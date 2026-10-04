@@ -6,8 +6,47 @@
     <h2 id="all-heading">All restaurants</h2>
     {% if saved %}<p class="message success" role="status">Restaurant added to your saved list.</p>{% endif %}
     {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
+    <form class="filter-form" method="get" action="{{ url_for('all_restaurants') }}">
+      <div class="field-grid">
+        <div class="field">
+          <label for="filter-category">Cuisine</label>
+          <input id="filter-category" name="category" type="text" value="{{ filters.get('category', '') }}" placeholder="e.g. Italian">
+        </div>
+        <div class="field">
+          <label for="filter-city">City</label>
+          <input id="filter-city" name="city" type="text" value="{{ filters.get('city', '') }}" placeholder="e.g. Madrid">
+        </div>
+        <div class="field">
+          <label for="filter-price">Price level</label>
+          <select id="filter-price" name="price">
+            <option value="">Any price</option>
+            {% for level in range(1, 5) %}
+              <option value="{{ level }}" {% if filters.get('price') == level|string %}selected{% endif %}>{{ level }} / 4</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="filter-rating">Minimum personal rating</label>
+          <input id="filter-rating" name="min_rating" type="number" min="0" max="5" step="0.1"
+                 value="{{ filters.get('min_rating', '') }}" placeholder="0–5">
+        </div>
+        <div class="field">
+          <label for="filter-status">Saved status</label>
+          <select id="filter-status" name="status">
+            <option value="">Any status</option>
+            <option value="want_to_go" {% if filters.get('status') == 'want_to_go' %}selected{% endif %}>Want to go</option>
+            <option value="visited" {% if filters.get('status') == 'visited' %}selected{% endif %}>Visited</option>
+            <option value="unsaved" {% if filters.get('status') == 'unsaved' %}selected{% endif %}>Not saved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit">Apply filters</button>
+        <a class="filter-clear" href="{{ url_for('all_restaurants') }}">Clear filters</a>
+      </div>
+    </form>
+    <p class="list-summary">{{ restaurants|length }} restaurant{% if restaurants|length != 1 %}s{% endif %} {% if has_filters %}match{% if restaurants|length == 1 %}es{% endif %} your filters{% else %}in the catalog{% endif %}</p>
     {% if restaurants %}
-      <p class="list-summary">{{ restaurants|length }} restaurant{% if restaurants|length != 1 %}s{% endif %} in the catalog</p>
       <ul class="restaurant-list">
         {% for restaurant in restaurants %}
           <li>
@@ -42,6 +81,8 @@
           </li>
         {% endfor %}
       </ul>
+    {% elif has_filters %}
+      <p class="empty-state">No restaurants match these filters. Change them or clear filters to see the full catalog.</p>
     {% else %}
       <p class="empty-state">No restaurants are in the catalog yet. Add one from the saved restaurants page.</p>
     {% endif %}

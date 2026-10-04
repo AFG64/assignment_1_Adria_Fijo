@@ -63,6 +63,8 @@ button:hover { background: #245f39; }
 .save-choice input { width: auto; margin: 0 6px 0 0; }
 .save-choice button { padding: 8px 11px; font-size: .85rem; }
 .list-summary { margin: -6px 0 18px; color: #637166; }
+.filter-form { margin-bottom: 26px; padding-bottom: 20px; border-bottom: 1px solid #e5ebe4; }
+.filter-clear { align-self: center; color: #315840; font-weight: 650; }
 .restaurant-actions { display: flex; flex: none; align-items: flex-start; gap: 8px; }
 .remove-button { padding: 4px 9px; border: 1px solid #d8a8a1; background: white; color: #9b3d32; font-size: .8rem; }
 .remove-button:hover { background: #fff0ed; }
@@ -93,6 +95,8 @@ button:hover { background: #245f39; }
 .visit-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .visit-heading h3 { margin: 0; font-size: 1.05rem; }
 .visit-notes { margin: 10px 0; white-space: pre-wrap; }
+.item-list { margin: 12px 0; padding-left: 20px; }
+.item-list li { padding: 3px 0; }
 .bill-list { margin: 12px 0; padding-left: 20px; }
 .bill-list a { color: #315840; }
 .bill-composer { margin-top: 12px; }
