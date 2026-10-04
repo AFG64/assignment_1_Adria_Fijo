@@ -103,6 +103,43 @@ def update_restaurant_location(database_path, restaurant_id, address, latitude, 
             raise ValueError("Restaurant not found.")
 
 
+def update_saved_details(database_path, saved_id, rating, notes, would_go_back):
+    """Edit the personal details of a saved restaurant."""
+    if not saved_id:
+        raise ValueError("Saved restaurant ID is required.")
+    if rating in (None, ""):
+        rating = None
+    else:
+        try:
+            rating = float(rating)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Rating must be from 0 to 5.") from error
+        if not math.isfinite(rating) or not 0 <= rating <= 5:
+            raise ValueError("Rating must be from 0 to 5.")
+
+    notes = (notes or "").strip()
+    if len(notes) > 2000:
+        raise ValueError("Notes must be 2000 characters or fewer.")
+    notes = notes or None
+
+    if would_go_back in (None, ""):
+        would_go_back = None
+    elif str(would_go_back) in ("0", "1"):
+        would_go_back = int(would_go_back)
+    else:
+        raise ValueError("Choose Yes, No, or Not sure yet.")
+
+    with closing(connect_database(database_path)) as connection, connection:
+        cursor = connection.execute(
+            """UPDATE saved_restaurants
+               SET rating = ?, notes = ?, would_go_back = ?
+               WHERE id = ?""",
+            (rating, notes, would_go_back, saved_id),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError("Saved restaurant not found.")
+
+
 def list_saved_restaurants(database_path):
     """Return the saved collection for the home page, newest first."""
     with closing(connect_database(database_path)) as connection:

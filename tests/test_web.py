@@ -3,7 +3,7 @@
 import pytest
 
 from backend.dining_history import add_visit, list_visits
-from backend.restaurant_domain import add_restaurant, list_saved_restaurants
+from backend.restaurant_domain import add_restaurant, get_restaurant_details, list_saved_restaurants, remove_restaurant
 from backend.web import create_app
 
 
@@ -47,3 +47,43 @@ def test_item_form_rejects_visit_from_another_restaurant(app):
     assert first_id != second_id
     assert response.status_code == 404
     assert list_visits(path, first_saved_id)[0]["items"] == []
+
+
+def test_saved_details_form_updates_restaurant(app):
+    path = app.config["DATABASE_PATH"]
+    restaurant_id = add_restaurant(path, "Corner Cafe")
+
+    response = app.test_client().post(
+        f"/restaurants/{restaurant_id}/saved-details",
+        data={"rating": "4.5", "notes": "  Great soup  ", "would_go_back": "0"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Your saved details were updated" in response.data
+    details = get_restaurant_details(path, restaurant_id)
+    assert details["personal_rating"] == 4.5
+    assert details["personal_notes"] == "Great soup"
+    assert details["would_go_back"] == 0
+
+
+def test_saved_details_form_requires_saved_restaurant_and_valid_rating(app):
+    path = app.config["DATABASE_PATH"]
+    restaurant_id = add_restaurant(path, "Corner Cafe")
+    client = app.test_client()
+
+    invalid = client.post(
+        f"/restaurants/{restaurant_id}/saved-details",
+        data={"rating": "7", "notes": "Keep this", "would_go_back": "1"},
+    )
+    assert invalid.status_code == 400
+    assert b"Rating must be from 0 to 5" in invalid.data
+    assert get_restaurant_details(path, restaurant_id)["personal_rating"] is None
+
+    saved_id = get_restaurant_details(path, restaurant_id)["saved_id"]
+    remove_restaurant(path, saved_id)
+    unsaved = client.post(
+        f"/restaurants/{restaurant_id}/saved-details",
+        data={"rating": "4", "notes": "", "would_go_back": ""},
+    )
+    assert unsaved.status_code == 404

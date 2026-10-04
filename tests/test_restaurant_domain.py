@@ -12,6 +12,7 @@ from backend.restaurant_domain import (
     list_saved_restaurants,
     remove_restaurant,
     save_existing_restaurant,
+    update_saved_details,
 )
 from database import initialize_database
 
@@ -89,6 +90,46 @@ def test_missing_saved_entry_cannot_be_removed(database_file):
         remove_restaurant(database_file, 999)
     with pytest.raises(ValueError, match="Saved restaurant ID is required"):
         remove_restaurant(database_file, 0)
+
+
+def test_saved_details_can_be_changed_and_cleared(database_file):
+    restaurant_id = add_restaurant(database_file, "Corner Cafe", rating=4, notes="Old note")
+    saved_id = get_restaurant_details(database_file, restaurant_id)["saved_id"]
+
+    update_saved_details(database_file, saved_id, "4.5", "  Try the soup  ", "1")
+    details = get_restaurant_details(database_file, restaurant_id)
+    assert (details["personal_rating"], details["personal_notes"], details["would_go_back"]) == (
+        4.5, "Try the soup", 1,
+    )
+
+    update_saved_details(database_file, saved_id, "", "", "")
+    details = get_restaurant_details(database_file, restaurant_id)
+    assert details["personal_rating"] is None
+    assert details["personal_notes"] is None
+    assert details["would_go_back"] is None
+
+
+@pytest.mark.parametrize("values", [
+    ("bad", "", ""), ("nan", "", ""), ("6", "", ""),
+    ("4", "", "maybe"), ("4", "x" * 2001, "1"),
+])
+def test_invalid_saved_details_do_not_change_existing_values(database_file, values):
+    restaurant_id = add_restaurant(database_file, "Corner Cafe", rating=3, notes="Keep this")
+    saved_id = get_restaurant_details(database_file, restaurant_id)["saved_id"]
+
+    with pytest.raises(ValueError):
+        update_saved_details(database_file, saved_id, *values)
+
+    details = get_restaurant_details(database_file, restaurant_id)
+    assert details["personal_rating"] == 3
+    assert details["personal_notes"] == "Keep this"
+
+
+def test_missing_saved_details_cannot_be_updated(database_file):
+    with pytest.raises(ValueError, match="Saved restaurant ID is required"):
+        update_saved_details(database_file, 0, "", "", "")
+    with pytest.raises(ValueError, match="Saved restaurant not found"):
+        update_saved_details(database_file, 999, "", "", "")
 
 
 def test_missing_restaurant_details_returns_none(database_file):

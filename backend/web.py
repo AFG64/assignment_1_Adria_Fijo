@@ -21,6 +21,7 @@ from .restaurant_domain import (
     remove_restaurant,
     save_existing_restaurant,
     update_restaurant_location,
+    update_saved_details,
 )
 
 
@@ -60,6 +61,9 @@ def create_app():
             location_values=context.get("location_values", {}),
             location_mode=context.get("location_mode", "search"),
             location_saved=request.args.get("location_saved"),
+            saved_error=context.get("saved_error"),
+            saved_values=context.get("saved_values"),
+            saved_updated=request.args.get("saved_updated"),
             visit_added=request.args.get("visit_added"),
             bill_added=request.args.get("bill_added"),
         )
@@ -144,6 +148,23 @@ def create_app():
     @app.get("/restaurants/<int:restaurant_id>")
     def restaurant_details(restaurant_id):
         return render_restaurant_details(restaurant_id)
+
+    @app.post("/restaurants/<int:restaurant_id>/saved-details")
+    def save_personal_details(restaurant_id):
+        restaurant = get_restaurant_details(app.config["DATABASE_PATH"], restaurant_id)
+        if restaurant is None or restaurant["saved_id"] is None:
+            abort(404, description="Save this restaurant before editing personal details.")
+        values = request.form.to_dict()
+        try:
+            update_saved_details(
+                app.config["DATABASE_PATH"], restaurant["saved_id"],
+                values.get("rating"), values.get("notes"), values.get("would_go_back"),
+            )
+        except ValueError as error:
+            return render_restaurant_details(
+                restaurant_id, saved_error=str(error), saved_values=values,
+            ), 400
+        return redirect(url_for("restaurant_details", restaurant_id=restaurant_id, saved_updated=1) + "#saved-details")
 
     @app.post("/restaurants/<int:restaurant_id>/location")
     def save_restaurant_location(restaurant_id):

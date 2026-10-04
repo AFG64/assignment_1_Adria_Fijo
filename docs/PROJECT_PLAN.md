@@ -13,7 +13,7 @@ The two backend feature domains would be:
 
 The restaurant collection can work without any visits. Dining history refers to a saved restaurant by ID; the Flask layer coordinates visit recording and status updates. The detailed ownership and interaction contract is in `DOMAIN_BOUNDARIES.md`. Both domains must save and read their own records through SQLite.
 
-The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited. Filtering was added on 2026-10-04; other editing remains pending.
+The student added `add_restaurant`, `remove_restaurant`, and `save_existing_restaurant` on 2026-09-30. The home page adds restaurants and removes saved entries. A separate All restaurants page reads every catalog row, including unsaved ones, and can save an existing row as Want to go or Visited. Filtering and editing of saved rating, notes, and return preference were added on 2026-10-04; editing general restaurant facts remains pending.
 
 On 2026-10-01, the student added `get_restaurant_details`. Both restaurant lists now link to a detail page backed by that function. The page displays general facts, saved details, and visit history.
 
@@ -27,7 +27,7 @@ On 2026-10-03, the location flow was corrected so a complete address is not comb
 
 On 2026-10-04, the All restaurants page gained combinable cuisine, city, price, minimum personal rating, and saved-status filters. Filtering reads the restaurant collection tables and keeps the two backend domain boundary unchanged.
 
-The final 2026-10-04 iteration added ordered items to visits, completed the two remaining architecture decisions, and verified a fresh start with an empty data directory. The test command now passes 56 tests with 96% combined domain coverage.
+The final 2026-10-04 iterations added ordered items to visits and editable personal details, completed the two remaining architecture decisions, and verified a fresh start with an empty data directory. The test command now passes 65 tests with 97% combined domain coverage.
 
 ## Decisions needed before implementation
 
@@ -41,7 +41,7 @@ The final 2026-10-04 iteration added ordered items to visits, completed the two 
 
 - [x] Working monolithic app with two distinct backend domains, each using SQLite.
 - [x] One dependency manifest at the repository root.
-- [x] Automated unit tests of both domains' business logic; 96% combined domain coverage measured on 2026-10-04.
+- [x] Automated unit tests of both domains' business logic; 97% combined domain coverage measured on 2026-10-04.
 - [x] `README.md`: install, run, configuration, SQLite path, test/coverage command and measured result.
 - [x] `ADR.md`: exactly five decided entries in the prescribed format across three decision dates.
 - [ ] `AI_USAGE.md`: one accurate row per meaningful AI interaction, reviewed and explained in the student's own words.

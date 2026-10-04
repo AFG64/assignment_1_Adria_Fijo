@@ -40,14 +40,45 @@
       </div>
     {% endif %}
 
-    <div class="detail-section">
+    <div class="detail-section" id="saved-details">
       <h3>Your saved details</h3>
       {% if restaurant.saved_id is not none %}
+        {% if saved_updated %}<p class="message success" role="status">Your saved details were updated.</p>{% endif %}
         <dl class="detail-grid">
           {% if restaurant.personal_rating is not none %}<div><dt>Your rating</dt><dd>{{ restaurant.personal_rating }}/5</dd></div>{% endif %}
           {% if restaurant.would_go_back is not none %}<div><dt>Would go back</dt><dd>{{ 'Yes' if restaurant.would_go_back else 'No' }}</dd></div>{% endif %}
         </dl>
         {% if restaurant.personal_notes %}<p class="personal-notes">{{ restaurant.personal_notes }}</p>{% else %}<p class="detail-muted">No personal notes yet.</p>{% endif %}
+        {% set detail_values = saved_values if saved_values is not none else {
+          'rating': restaurant.personal_rating if restaurant.personal_rating is not none else '',
+          'notes': restaurant.personal_notes or '',
+          'would_go_back': restaurant.would_go_back|string if restaurant.would_go_back is not none else ''
+        } %}
+        <details class="visit-composer" {% if saved_error %}open{% endif %}>
+          <summary>Edit your saved details</summary>
+          {% if saved_error %}<p class="message error" role="alert">{{ saved_error }}</p>{% endif %}
+          <form method="post" action="{{ url_for('save_personal_details', restaurant_id=restaurant.id) }}">
+            <div class="field-grid">
+              <div class="field">
+                <label for="saved_rating">Your overall rating</label>
+                <input id="saved_rating" name="rating" type="number" min="0" max="5" step="0.1" value="{{ detail_values.get('rating', '') }}">
+              </div>
+              <div class="field">
+                <label for="saved_would_go_back">Would you go back?</label>
+                <select id="saved_would_go_back" name="would_go_back">
+                  <option value="" {% if detail_values.get('would_go_back', '')|string == '' %}selected{% endif %}>Not sure yet</option>
+                  <option value="1" {% if detail_values.get('would_go_back', '')|string == '1' %}selected{% endif %}>Yes</option>
+                  <option value="0" {% if detail_values.get('would_go_back', '')|string == '0' %}selected{% endif %}>No</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="saved_notes">Private notes</label>
+              <textarea id="saved_notes" name="notes" rows="3" maxlength="2000">{{ detail_values.get('notes', '') }}</textarea>
+            </div>
+            <button type="submit">Save details</button>
+          </form>
+        </details>
       {% else %}
         <p class="detail-muted">This restaurant is not in your saved list. You can save it from All restaurants.</p>
       {% endif %}

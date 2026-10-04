@@ -32,7 +32,7 @@ Status: Decided
 Context: The assignment requires at least 70% coverage of core business logic in both domains. The app also has Flask routes and a public address lookup, but those are not the main coverage target.
 Decision: Test restaurant and dining-history functions against an isolated temporary SQLite database, then add a few Flask route tests for the forms. Mock the external address lookup in tests so they run offline.
 Alternatives considered: Browser-only tests would show the page flow but would make domain failures harder to locate and would not directly measure the required business logic coverage.
-Consequences: The measured domain coverage is 96%, with repeatable tests that do not alter the user's database. This does not prove every browser interaction or every external map result is correct.
+Consequences: The measured domain coverage is 97%, with repeatable tests that do not alter the user's database. This does not prove every browser interaction or every external map result is correct.
 
 ## 5. Keep authentication out of this local single-user version
 Date: 2026-10-04
