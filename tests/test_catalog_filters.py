@@ -36,6 +36,13 @@ def test_catalog_form_filters_and_keeps_choices(app):
     assert b"Gamma Cafe" not in response.data
     assert b"1 restaurant matches your filters" in response.data
     assert b'value="madrid"' in response.data
+    assert b'<details class="filter-panel" open>' in response.data
+
+
+def test_catalog_filters_start_collapsed(app):
+    response = app.test_client().get("/restaurants")
+    assert b'<details class="filter-panel" >' in response.data
+    assert b'<summary>Filters' in response.data
 
 
 def test_catalog_can_show_only_unsaved_restaurants(app):

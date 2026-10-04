@@ -6,6 +6,8 @@
     <h2 id="all-heading">All restaurants</h2>
     {% if saved %}<p class="message success" role="status">Restaurant added to your saved list.</p>{% endif %}
     {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
+    <details class="filter-panel" {% if has_filters or error %}open{% endif %}>
+      <summary>Filters{% if has_filters %} <span class="filter-active">Active</span>{% endif %}</summary>
     <form class="filter-form" method="get" action="{{ url_for('all_restaurants') }}">
       <div class="field-grid">
         <div class="field">
@@ -45,6 +47,7 @@
         <a class="filter-clear" href="{{ url_for('all_restaurants') }}">Clear filters</a>
       </div>
     </form>
+    </details>
     <p class="list-summary">{{ restaurants|length }} restaurant{% if restaurants|length != 1 %}s{% endif %} {% if has_filters %}match{% if restaurants|length == 1 %}es{% endif %} your filters{% else %}in the catalog{% endif %}</p>
     {% if restaurants %}
       <ul class="restaurant-list">
