@@ -17,7 +17,24 @@
       {% endif %}
     </div>
 
+    {% if catalog_save_error %}<p class="message error" role="alert">{{ catalog_save_error }}</p>{% endif %}
+
     {% if restaurant.description %}<p class="detail-description">{{ restaurant.description }}</p>{% endif %}
+
+    {% if restaurant.saved_id is none %}
+      <div class="detail-save-prompt">
+        <p>Save this place to keep personal notes and record visits.</p>
+        <form method="post" action="{{ url_for('save_restaurant', restaurant_id=restaurant.id) }}">
+          <input type="hidden" name="return_to" value="details">
+          <fieldset>
+            <legend>Have you visited already?</legend>
+            <label><input type="radio" name="status" value="want_to_go" required> Want to go</label>
+            <label><input type="radio" name="status" value="visited" required> Visited</label>
+          </fieldset>
+          <button type="submit">Save to my list</button>
+        </form>
+      </div>
+    {% endif %}
 
     <dl class="detail-grid">
       {% if restaurant.category_name %}<div><dt>Category or cuisine</dt><dd>{{ restaurant.category_name }}</dd></div>{% endif %}
@@ -80,7 +97,7 @@
           </form>
         </details>
       {% else %}
-        <p class="detail-muted">This restaurant is not in your saved list. You can save it from All restaurants.</p>
+        <p class="detail-muted">Save this restaurant above to add personal notes.</p>
       {% endif %}
     </div>
   </section>
@@ -152,7 +169,7 @@
     </div>
 
     {% if restaurant.saved_id is none %}
-      <p class="detail-muted">Save this restaurant from All restaurants before recording a visit.</p>
+      <p class="detail-muted">Save this restaurant above before recording a visit.</p>
     {% else %}
       {% if visit_added %}<p class="message success" role="status">Visit recorded.</p>{% endif %}
       {% if bill_added %}<p class="message success" role="status">Bill attached to your visit.</p>{% endif %}

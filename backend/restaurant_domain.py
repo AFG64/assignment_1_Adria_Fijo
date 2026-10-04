@@ -195,7 +195,7 @@ def list_all_restaurants(database_path, category="", city="", price="", min_rati
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             f"""
-            SELECT r.id, r.title, r.category_name, r.city, r.price,
+            SELECT r.id, r.title, r.category_name, r.city, r.street, r.price,
                    r.total_score, s.id AS saved_id,
                    s.status AS saved_status, s.rating AS personal_rating
             FROM restaurants AS r

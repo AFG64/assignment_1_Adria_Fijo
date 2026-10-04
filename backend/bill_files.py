@@ -43,7 +43,11 @@ def stored_bill_path(database_path, image_path):
             or len(relative.stem) != 32 or not all(c in "0123456789abcdef" for c in relative.stem)
             or relative.suffix not in {".png", ".jpg", ".pdf"}):
         raise ValueError("Invalid bill file path.")
-    return (Path(database_path).parent / relative).resolve()
+    bill_dir = (Path(database_path).parent / "bills").resolve()
+    file_path = (bill_dir / relative.name).resolve()
+    if file_path.parent != bill_dir:
+        raise ValueError("Invalid bill file path.")
+    return file_path
 
 
 def remove_bill_file(database_path, image_path):

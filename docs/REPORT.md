@@ -11,7 +11,7 @@ The stakeholder is a person who wants one local journal for restaurants they pla
 | Save a restaurant with a name and status in one form submission, and keep it after restart. | A fresh-start process test submitted the form, received a successful response, and found a saved row in the new SQLite file. |
 | Narrow the catalog by cuisine, city, price, personal rating, or saved status, with filters that can be combined. | Domain and route tests check individual and combined filters, empty results, and invalid input. |
 | Record a dated visit and at least one ordered item for a saved restaurant. | The visit and item forms write to SQLite; tests verify the items stay with the correct visit. |
-| Reach at least 70% measured coverage of the two core domains. | The final test command passed 65 tests with 97% combined domain coverage. |
+| Reach at least 70% measured coverage of the two core domains. | The final test command passed 83 tests with 97% combined domain coverage. |
 
 These targets are specific to the local app and can be checked without claiming an unmeasured time saving or production scale. A person can also attach a PNG, JPEG, or PDF bill to a visit; this is useful but was not needed to count either domain as working.
 
@@ -134,7 +134,7 @@ Keeping `restaurants` separate from `saved_restaurants` lets an unsaved restaura
 
 ## 5. Testing, deployment contract, and reflection
 
-On 2026-10-04, `python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing` passed 65 tests and measured 97% combined coverage of the two domain modules. The domain tests cover validation, saved-list edits and removal, filters, visit status, ordered items, bill ownership, and SQLite cascades. Flask route tests check several form paths using a temporary database. Location tests mock the external address service so they are repeatable and offline. The coverage figure applies to the two core modules; it does not measure every HTML path or guarantee that a map result identifies the correct building.
+On 2026-10-04, `python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing` passed 83 tests and measured 97% combined coverage of the two domain modules. The tests cover validation, saved-list edits and removal, filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and SQLite cascades. Flask route tests check form paths using a temporary database. Location tests mock the external address service so they are repeatable and offline. The coverage figure applies to the two core modules; it does not measure every HTML path or guarantee that a map result identifies the correct building.
 
 A fresh-start check launched `python app.py` with a new empty `DATA_DIR` and a nondefault `PORT`, received HTTP 200 from `/health`, submitted a restaurant form, and found its saved row in the new SQLite file. The app binds to `0.0.0.0`, uses `PORT` (default 8000), needs no interactive migration, and keeps one dependency manifest at the repository root. It has no authored Dockerfile, CI workflow, infrastructure code, managed database, or required cache service. The public location API is optional to basic use.
 

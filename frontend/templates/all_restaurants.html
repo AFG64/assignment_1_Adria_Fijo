@@ -62,6 +62,7 @@
                 {% if restaurant.total_score is not none %} · General score {{ restaurant.total_score }}/5{% endif %}
                 {% if restaurant.personal_rating is not none %} · Your rating {{ restaurant.personal_rating }}/5{% endif %}
               </p>
+              {% if restaurant.street %}<p class="restaurant-address">{{ restaurant.street }}</p>{% endif %}
             </a>
             {% if restaurant.saved_id is not none %}
               <span class="status">{{ 'Visited' if restaurant.saved_status == 'visited' else 'Want to go' }}</span>

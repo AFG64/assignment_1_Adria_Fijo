@@ -32,7 +32,7 @@ Status: Decided
 Context: The assignment measures coverage of the two domains' core logic and requires at least 70%. Validation, filtering, cascade deletion, and visit ownership depend on real SQL behavior, while a public address service could make tests slow or unreliable.
 Decision: Test domain functions against a new temporary SQLite database for each test and measure `backend.restaurant_domain` and `backend.dining_history` with `pytest-cov`. Add a smaller set of Flask form tests and mock address lookup so the suite runs offline.
 Alternatives considered: Browser-only testing would exercise the visible flow but make failed business rules harder to locate and would not directly measure domain coverage. Mocking SQLite instead would miss foreign-key and cascade behavior that the app relies on.
-Consequences: The final command in the README passes 65 tests and reports 97% combined domain coverage without changing the user's database. This measures the selected Python modules, not every browser interaction or the accuracy of a real map search.
+Consequences: The final command in the README passes 83 tests and reports 97% combined domain coverage without changing the user's database. This measures the selected Python modules, not every browser interaction or the accuracy of a real map search.
 
 ## 5. Keep authentication out of this local single-user version
 Date: 2026-10-04
