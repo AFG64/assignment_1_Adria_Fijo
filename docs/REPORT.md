@@ -1,4 +1,4 @@
-# Assignment 1 report — DevOps Food
+# Assignment 1 report — Picky
 
 **Completed:** 2026-10-04. This report describes the single-process Flask application on the submission branch.
 

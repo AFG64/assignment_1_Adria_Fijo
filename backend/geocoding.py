@@ -13,7 +13,7 @@ from uuid import uuid4
 
 
 DEFAULT_BASE_URL = "https://nominatim.openstreetmap.org"
-USER_AGENT = "DevOpsFood/1.0 (+https://github.com/AFG64/devops-food)"
+USER_AGENT = "Picky/1.0 (+https://github.com/AFG64/devops-food)"
 _request_lock = Lock()
 _last_request_at = 0.0
 
