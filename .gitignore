@@ -6,3 +6,4 @@ htmlcov/
 .playwright-cli/
 data/
 .DS_Store
+coverage.json
