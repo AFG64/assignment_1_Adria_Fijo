@@ -24,9 +24,11 @@ def create_app(service_name, migration_directory):
 
     @app.after_request
     def finish_request(response):
+        response.headers.add('Vary', 'Origin')
         if request.headers.get('Origin') == ui_origin:
             response.headers['Access-Control-Allow-Origin'] = ui_origin
-            response.headers.add('Vary', 'Origin')
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         app.logger.info(json.dumps({
             'service': service_name, 'version': version,
             'method': request.method, 'path': request.path,

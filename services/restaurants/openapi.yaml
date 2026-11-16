@@ -3,7 +3,7 @@
   "info": {
     "title": "Picky restaurants API",
     "version": "0.1.0",
-    "description": "Milestone 1 target contract. Endpoints are not implemented yet; Assignment 1 still runs as the monolith."
+    "description": "Restaurant SQL API implemented except coordinated deletion, which returns 503 until milestone 5. Initial schema and seeded catalog remain 001 only."
   },
   "paths": {
     "/restaurants": {
@@ -118,6 +118,16 @@
           },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected application/json",
             "content": {
               "application/json": {
                 "schema": {
@@ -242,6 +252,16 @@
                 }
               }
             }
+          },
+          "415": {
+            "description": "Expected application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -317,6 +337,16 @@
           },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Expected application/json",
             "content": {
               "application/json": {
                 "schema": {
@@ -460,6 +490,16 @@
                 }
               }
             }
+          },
+          "415": {
+            "description": "Expected application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -498,7 +538,7 @@
       },
       "delete": {
         "operationId": "removeSavedEntry",
-        "description": "Target coordination protocol remains to be finalized in milestone 5. Must remove dining records and bills through HTTP before deleting saved entry; peer failure must not report success.",
+        "description": "Currently returns 503 coordination_pending without deleting anything; 404 if absent. Success contract is a target for milestone 5, when HTTP dining cleanup is connected.",
         "responses": {
           "204": {
             "description": "Completed; no response body"
@@ -762,6 +802,52 @@
                 "$ref": "#/components/schemas/SavedEntry"
               }
             ],
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "street": {
+            "type": "string",
+            "nullable": true
+          },
+          "postal_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "nullable": true
+          },
+          "country_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "menu": {
+            "type": "string",
+            "nullable": true
+          },
+          "image_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "total_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5,
+            "nullable": true
+          },
+          "reviews_count": {
+            "type": "integer",
             "nullable": true
           }
         },

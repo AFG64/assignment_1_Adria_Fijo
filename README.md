@@ -97,7 +97,7 @@ The planned ownership, business rules, and interactions are defined in [`docs/DO
 Run the tests and measure coverage of the two backend feature domains with:
 
 ```sh
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov-report=term-missing
 ```
 
 Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.
@@ -105,8 +105,9 @@ Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (resta
 ## Assignment 2 container foundation (in progress)
 
 The Assignment 1 instructions above remain available. The split services currently
-implement startup, versioned SQL schemas, `/health` and request logs only. Feature
-APIs and the static restaurant/dining screens are still being ported; nginx serves
+implement startup, versioned SQL schemas, `/health` and request logs. Restaurants
+also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
+Dining features and static screens are still being ported; nginx serves
 a temporary setup page. Target endpoints/configuration are in `services/*/openapi.yaml`
 and `system.yaml`. The system schema is student-authored from brief §8a.
 
@@ -144,7 +145,7 @@ For local checks:
 ```sh
 python -m pip install -r requirements-dev.txt
 python scripts/validate_contracts.py --require-system
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
 python scripts/check_stack.py
 ```
@@ -178,3 +179,19 @@ for data you want to keep. To repeat initialization without resetting data:
 docker compose run --rm db-init
 docker compose restart restaurants dining
 ```
+
+Restaurant API regression (running local stack): `python scripts/check_restaurant_api.py`.
+For example, `GET http://localhost:8001/restaurants?city=Madrid&status=not_saved`
+lists unsaved catalog entries. JSON responses include nested `saved` details;
+creation/saving use POST, personal detail changes use PATCH, and location changes
+use PUT. See the restaurant OpenAPI for bodies and status codes. A location can
+be entered manually offline. Address search uses a bounded timeout, one-second
+rate limit and a 256-entry in-memory success cache in the single worker. Cache
+contents reset on restart. Do not bulk-geocode or use autocomplete.
+
+Removal currently returns 503 `coordination_pending`, leaving records intact.
+Successful deletion requires the dining HTTP cleanup protocol in milestone 5.
+Unit tests enforce at least 70% on each restaurant core module, alongside the
+transitional legacy domain/runtime floors. The SQL HTTP check runs in CI after
+compose starts and cleans up only records it creates. No bill/visit flows are
+claimed by this increment.
