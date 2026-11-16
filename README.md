@@ -97,7 +97,84 @@ The planned ownership, business rules, and interactions are defined in [`docs/DO
 Run the tests and measure coverage of the two backend feature domains with:
 
 ```sh
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing
 ```
 
 Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.
+
+## Assignment 2 container foundation (in progress)
+
+The Assignment 1 instructions above remain available. The split services currently
+implement startup, versioned SQL schemas, `/health` and request logs only. Feature
+APIs and the static restaurant/dining screens are still being ported; nginx serves
+a temporary setup page. Target endpoints/configuration are in `services/*/openapi.yaml`
+and `system.yaml`. The system schema is student-authored from brief §8a.
+
+Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
+Desktop's Rosetta emulation. The real SQL checks also run on native amd64 in CI.
+From a clean checkout:
+
+```sh
+python3 scripts/configure_local.py
+docker compose up --build
+```
+
+The generator creates a private, ignored `.env` with three different random local
+passwords. `.env.example` describes the required settings. Keep the generated
+passwords with the SQL volume: existing logins are deliberately not reset on
+startup. Never commit this file. If supplying your own passwords, use the same
+`Aa1` plus random-hex format to keep sqlcmd substitution and connection URLs safe.
+
+Local UI: [http://localhost:8080](http://localhost:8080).
+Restaurant health: [http://localhost:8001/health](http://localhost:8001/health).
+Dining health: [http://localhost:8002/health](http://localhost:8002/health).
+SQL is reachable only inside the compose network. One-off `db-init` creates the
+two databases/logins idempotently; each login has `db_owner` only in its own
+database so it can apply migrations. Neither service receives the SA password.
+Production privilege refinement and Azure setup remain later work.
+
+To run only one service and its database prerequisites:
+
+```sh
+docker compose up --build restaurants
+```
+
+For local checks:
+
+```sh
+python -m pip install -r requirements-dev.txt
+python scripts/validate_contracts.py --require-system
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
+python scripts/check_domain_coverage.py
+python scripts/check_stack.py
+```
+
+The last command needs the running full stack. It checks real SQL permissions,
+second-boot migration no-ops, own read/write probes and persistence across service
+restarts. CI builds both images and runs this against a disposable SQL container,
+never Azure SQL. Coverage still measures the original feature modules until the
+feature APIs are ported; runtime unit tests additionally exercise startup safety.
+
+Each service image uses an allowlisted build context, explicit COPY, a pinned
+manifest and UID 10001. Gunicorn starts one worker after acquiring a database
+migration lock. SQL scripts and ledger entries commit together; applied script
+checksums are verified and modified/missing applied files cause startup to fail.
+No `002` exists yet. Do not edit `001` after applying it; use a new migration for
+future changes. No startup path drops a database or erases existing tables.
+
+Database connections use encrypted TDS, 5-second login/query timeouts and up to
+12 startup attempts with capped exponential backoff (about two minutes including
+connection timeouts). Read/write health probes roll back their temporary rows
+and return 503 when the own database fails; they do not call the peer. Request
+logs include method, path, status, duration, service and version. `PORT`,
+`DATABASE_URL`, `VERSION` and `UI_ORIGIN` are the runtime settings currently read;
+other settings in `system.yaml` describe the target APIs. A nonlocal version can
+be built with `VERSION=$(git rev-parse HEAD) docker compose build`.
+
+`docker compose down` retains the named SQL volume. Do not use `down --volumes`
+for data you want to keep. To repeat initialization without resetting data:
+
+```sh
+docker compose run --rm db-init
+docker compose restart restaurants dining
+```

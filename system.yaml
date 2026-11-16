@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=./system.schema.json
+# Target API architecture; only startup, SQL migrations and health run today.
+# Student-authored schema from Assignment 2 §8a, not professor-provided.
+# LOCAL_PLACEHOLDER values must be confirmed/replaced before Azure setup.
+student: LOCAL_PLACEHOLDER_STUDENT
+prefix: LOCAL_PLACEHOLDER_PREFIX
+public_url: http://localhost:8080
+ui:
+  path: ui
+  static_web_app: LOCAL_PLACEHOLDER_PREFIX-ui
+  calls: [restaurants, dining]
+azure:
+  resource_group: LOCAL_PLACEHOLDER_CLASS_RESOURCE_GROUP
+  container_apps_environment: LOCAL_PLACEHOLDER_PREFIX-env
+  sql_server: LOCAL_PLACEHOLDER_PREFIX-sql
+  registry: ghcr.io/LOCAL_PLACEHOLDER_GITHUB_OWNER
+services:
+  restaurants:
+    description: Restaurant catalog, saved entries, personal details and locations.
+    path: services/restaurants
+    openapi: services/restaurants/openapi.yaml
+    port_default: 8000
+    health: /health
+    migrations: services/restaurants/migrations
+    env:
+      PORT: {default: 8000, description: HTTP listening port}
+      DATABASE_URL: {secret: true, description: Own restaurant SQL database connection string}
+      VERSION: {default: local, description: Git SHA injected by the image build/deployment}
+      UI_ORIGIN: {default: 'http://localhost:8080', description: Single allowed browser origin}
+      DINING_URL: {default: 'http://dining:8000', description: Dining API base URL in compose}
+      DINING_TIMEOUT_S: {default: 2, description: Timeout in seconds for each dining HTTP call}
+      GEOCODER_BASE_URL: {default: 'https://nominatim.openstreetmap.org', description: Address lookup provider base URL}
+      GEOCODER_TIMEOUT_S: {default: 5, description: Bounded address lookup timeout in seconds}
+    calls:
+      - service: dining
+        url_env: DINING_URL
+        endpoints: ['DELETE /saved-restaurants/{saved_id}/history']
+        timeout_s: 2
+        on_failure: Do not report successful saved-entry deletion; show a retryable unavailable message. Partial-write and concurrency protocol remains milestone 5 work.
+    azure:
+      container_app: LOCAL_PLACEHOLDER_PREFIX-restaurants
+      sql_database: LOCAL_PLACEHOLDER_PREFIX-restaurants-db
+  dining:
+    description: Visits, ordered items and durable bill contents; saved IDs are external references.
+    path: services/dining
+    openapi: services/dining/openapi.yaml
+    port_default: 8000
+    health: /health
+    migrations: services/dining/migrations
+    env:
+      PORT: {default: 8000, description: HTTP listening port}
+      DATABASE_URL: {secret: true, description: Own dining SQL database connection string}
+      VERSION: {default: local, description: Git SHA injected by the image build/deployment}
+      UI_ORIGIN: {default: 'http://localhost:8080', description: Single allowed browser origin}
+      RESTAURANTS_URL: {default: 'http://restaurants:8000', description: Restaurant API base URL in compose}
+      RESTAURANTS_TIMEOUT_S: {default: 2, description: Timeout in seconds for each restaurant HTTP call}
+    calls:
+      - service: restaurants
+        url_env: RESTAURANTS_URL
+        endpoints: ['GET /saved-restaurants/{saved_id}', 'PUT /saved-restaurants/{saved_id}/visited']
+        timeout_s: 2
+        on_failure: Return a clear peer-unavailable response when validation/status update cannot complete; do not claim consistent visit success. Retry and partial-write protocol remains milestone 5 work. Existing history reads use own database only.
+    azure:
+      container_app: LOCAL_PLACEHOLDER_PREFIX-dining
+      sql_database: LOCAL_PLACEHOLDER_PREFIX-dining-db

@@ -6,3 +6,7 @@ htmlcov/
 .playwright-cli/
 data/
 .DS_Store
+coverage.json
+.env
+.env.*
+!.env.example

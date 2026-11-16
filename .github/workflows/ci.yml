@@ -1,0 +1,42 @@
+name: CI baseline
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Lint current Python and contract checks
+        run: python -m ruff check --select E9,F63,F7,F82 app.py backend database tests scripts service_runtime services
+      - name: Validate system and proposed API contracts
+        run: python scripts/validate_contracts.py --require-system
+      - name: Test existing behavior and measure each domain
+        run: python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
+      - run: python scripts/check_domain_coverage.py
+  containers-and-sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate private local-only test configuration
+        run: python scripts/configure_local.py
+      - name: Build both images and start isolated SQL stack
+        run: docker compose up --build -d --wait --wait-timeout 240
+      - name: Own SQL, login isolation, repeat boot and restart persistence
+        run: python scripts/check_stack.py
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail 100
+      - name: Stop disposable CI containers
+        if: always()
+        run: docker compose down --volumes
+# Domain-module coverage remains transitional until the feature APIs are ported.
+# CI uses only its local SQL container; no Azure database is contacted.
