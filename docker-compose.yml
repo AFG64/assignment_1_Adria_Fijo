@@ -1,0 +1,60 @@
+name: picky
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Run python scripts/configure_local.py}
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: [CMD-SHELL, '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" -o /dev/null']
+      interval: 5s
+      timeout: 8s
+      retries: 30
+      start_period: 30s
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    depends_on:
+      sql: {condition: service_healthy}
+    environment:
+      SQLCMDPASSWORD: ${MSSQL_SA_PASSWORD:?Generate .env first}
+      RESTAURANTS_PASSWORD: ${RESTAURANTS_PASSWORD:?Generate .env first}
+      DINING_PASSWORD: ${DINING_PASSWORD:?Generate .env first}
+    volumes:
+      - ./db/init.sql:/init.sql:ro
+    entrypoint: [/opt/mssql-tools18/bin/sqlcmd]
+    command: [-S, sql, -U, sa, -C, -b, -i, /init.sql]
+  restaurants:
+    build:
+      context: .
+      dockerfile: services/restaurants/Dockerfile
+      args: {VERSION: '${VERSION:-local}'}
+    environment:
+      DATABASE_URL: mssql://picky_restaurants:${RESTAURANTS_PASSWORD:?Generate .env first}@sql:1433/picky_restaurants
+      DINING_URL: http://dining:8000
+      UI_ORIGIN: http://localhost:8080
+    depends_on:
+      db-init: {condition: service_completed_successfully}
+    ports: ['127.0.0.1:8001:8000']
+  dining:
+    build:
+      context: .
+      dockerfile: services/dining/Dockerfile
+      args: {VERSION: '${VERSION:-local}'}
+    environment:
+      DATABASE_URL: mssql://picky_dining:${DINING_PASSWORD:?Generate .env first}@sql:1433/picky_dining
+      RESTAURANTS_URL: http://restaurants:8000
+      UI_ORIGIN: http://localhost:8080
+    depends_on:
+      db-init: {condition: service_completed_successfully}
+    ports: ['127.0.0.1:8002:8000']
+  ui:
+    image: nginx:alpine
+    ports: ['127.0.0.1:8080:80']
+    volumes: ['./ui:/usr/share/nginx/html:ro']
+volumes:
+  sql-data:

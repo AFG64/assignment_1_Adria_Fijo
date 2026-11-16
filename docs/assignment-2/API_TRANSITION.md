@@ -1,9 +1,9 @@
 # Milestone 1: API transition
 
-These are proposed contracts, not running services. The Assignment 1 app and its
+These are proposed feature contracts. Only service startup and /health are implemented. The Assignment 1 app and its
 SQLite data remain the runnable baseline. OpenAPI files use JSON syntax, which is
-also valid YAML. Service manifests pin the initial Flask dependency; SQL driver
-and production server dependencies belong to milestone 2.
+also valid YAML. Service manifests pin Flask, pymssql and Gunicorn; milestone 2 adds SQL startup
+and container health. Feature endpoints remain for later milestones.
 
 ## Operation map
 
@@ -56,7 +56,7 @@ Install `requirements-dev.txt`, then run:
 ```sh
 python -m ruff check --select E9,F63,F7,F82 app.py backend database tests scripts
 python scripts/validate_contracts.py --require-system
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov-report=term-missing --cov-report=json
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
 ```
 
@@ -80,8 +80,7 @@ configuration and called endpoints against the target OpenAPI document. It
 always requires both system files; there is no optional validation bypass.
 Negative acceptance cases run with the normal pytest suite.
 
-`system.yaml` describes the **target** split architecture. Its `ui/` and migration
-paths are planned, not yet implemented. Environment settings are proposed for
+`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and APIs remain planned. Environment settings are proposed for
 those future services, not a claim that today's monolith reads them. Update this
 inventory alongside implementation, including any added settings and defaults.
 `LOCAL_PLACEHOLDER_*` explicitly marks unconfirmed student ID, username prefix,
@@ -90,5 +89,5 @@ CORS origin currently describe localhost only. Confirm identities and replace
 all placeholders with actual resources/URLs before Azure setup; this file is not
 a deployment configuration. No secret values are stored here.
 
-Both image builds and isolated SQL checks remain required in milestone 2 before
-the first PR merges. No Azure access or deployment is part of this baseline.
+Both image builds and local isolated SQL checks now run in CI; a successful remote
+run is still required before the first PR merges. No Azure access or deployment is part of this baseline.

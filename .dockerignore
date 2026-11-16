@@ -1,0 +1,14 @@
+**
+!service_runtime/
+!service_runtime/*.py
+!services/
+!services/restaurants/
+!services/restaurants/requirements.txt
+!services/restaurants/app.py
+!services/restaurants/migrations/
+!services/restaurants/migrations/*.sql
+!services/dining/
+!services/dining/requirements.txt
+!services/dining/app.py
+!services/dining/migrations/
+!services/dining/migrations/*.sql

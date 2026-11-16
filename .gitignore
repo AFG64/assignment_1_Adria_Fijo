@@ -7,3 +7,6 @@ htmlcov/
 data/
 .DS_Store
 coverage.json
+.env
+.env.*
+!.env.example
