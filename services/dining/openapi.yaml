@@ -3,7 +3,7 @@
   "info": {
     "title": "Picky dining API",
     "version": "0.1.0",
-    "description": "Milestone 1 target contract. Endpoints are not implemented yet; Assignment 1 still runs as the monolith."
+    "description": "Milestone 4: SQL dining history, items and durable bills implemented. Visit creation and history deletion return coordination_pending (503) until milestone 5."
   },
   "paths": {
     "/saved-restaurants/{saved_id}/visits": {
@@ -38,48 +38,8 @@
       },
       "post": {
         "operationId": "recordVisit",
-        "description": "Date must not be in the future. Dining validates saved ID and marks visited through restaurant HTTP API. Retry/partial-write protocol is a milestone 5 implementation gate; never claim success for inconsistent writes.",
+        "description": "Not yet available: returns coordination_pending until milestone 5.",
         "responses": {
-          "201": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Visit"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
             "content": {
@@ -138,21 +98,8 @@
     "/saved-restaurants/{saved_id}/history": {
       "delete": {
         "operationId": "deleteHistory",
-        "description": "Idempotent deletion of own visits/items/bill contents. Restaurant service coordinates saved-entry removal. Concurrency protocol finalized in milestone 5.",
+        "description": "Not yet available: returns coordination_pending until milestone 5.",
         "responses": {
-          "204": {
-            "description": "Completed; no response body"
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
             "content": {
@@ -232,16 +179,19 @@
                 "properties": {
                   "item_name": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 300
                   },
                   "quantity": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 2147483647
                   },
                   "unit_price": {
                     "type": "number",
                     "minimum": 0,
-                    "nullable": true
+                    "nullable": true,
+                    "maximum": 9999999999.99
                   }
                 },
                 "required": [
@@ -277,7 +227,7 @@
     "/saved-restaurants/{saved_id}/visits/{visit_id}/bills": {
       "post": {
         "operationId": "uploadBill",
-        "description": "PNG, JPEG or PDF signature; maximum 5 MiB. Content will be stored durably in dining SQL, not the container filesystem.",
+        "description": "PNG, JPEG or PDF signature; maximum 5 MiB. Binary contents stored in dining SQL.",
         "responses": {
           "201": {
             "description": "Success",
@@ -460,7 +410,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/Health"
                 }
               }
             }

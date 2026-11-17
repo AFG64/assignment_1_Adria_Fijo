@@ -9,6 +9,6 @@
 !services/restaurants/migrations/*.sql
 !services/dining/
 !services/dining/requirements.txt
-!services/dining/app.py
+!services/dining/*.py
 !services/dining/migrations/
 !services/dining/migrations/*.sql

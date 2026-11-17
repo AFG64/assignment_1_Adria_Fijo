@@ -4,11 +4,12 @@ WORKDIR /app
 COPY services/dining/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt && useradd --uid 10001 --create-home picky
 COPY service_runtime/ /app/service_runtime/
-COPY services/dining/app.py /app/app.py
+COPY services/dining/*.py /app/services/dining/
+COPY services/dining/migrations/ /app/services/dining/migrations/
 COPY services/dining/migrations/ /app/migrations/
 ARG VERSION=local
 ENV VERSION=$VERSION
 USER 10001
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=8s --start-period=120s --retries=6 CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT', '8000') + '/health', timeout=7)"
-CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --access-logfile - app:app"]
+CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --access-logfile - services.dining.app:app"]

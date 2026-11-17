@@ -34,7 +34,7 @@ Restaurants owns restaurants, saved_restaurants, restaurant_images and
 restaurant_emails. Dining owns visits, visit_items and bills. The dining saved ID
 is an external identifier, without a cross-database foreign key. No service may
 query the peer database. Proposed bill storage is binary content in dining SQL,
-so container replacement cannot erase uploads; implement and test in milestone 4.
+so container replacement cannot erase uploads; implemented and tested in milestone 4.
 
 Dining calls restaurants `GET /saved-restaurants/{saved_id}` and
 `PUT /saved-restaurants/{saved_id}/visited`. Restaurants calls dining
@@ -57,7 +57,7 @@ Install `requirements-dev.txt`, then run:
 ```sh
 python -m ruff check --select E9,F63,F7,F82 app.py backend database tests scripts
 python scripts/validate_contracts.py --require-system
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
 ```
 
@@ -81,14 +81,21 @@ configuration and called endpoints against the target OpenAPI document. It
 always requires both system files; there is no optional validation bypass.
 Negative acceptance cases run with the normal pytest suite.
 
-`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and APIs remain planned. Environment settings cover both implemented restaurant/runtime settings and planned
+`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and cross-service coordination remain planned; own-domain restaurant and dining APIs are implemented. Environment settings cover both implemented restaurant/runtime settings and planned
 peer calls. The monolith continues to use its own configuration. Update this
 inventory alongside implementation, including any added settings and defaults.
-`LOCAL_PLACEHOLDER_*` explicitly marks unconfirmed student ID, username prefix,
-class resource group, GitHub registry owner and resource names. Public URL and
+The user confirmed student/prefix `afijo2024` and class group `rg-sdd-3a` on 17 November; registry namespace follows repository owner `AFG64`. Resource names are proposed, not provisioned. Public URL and
 CORS origin currently describe localhost only. Confirm identities and replace
 all placeholders with actual resources/URLs before Azure setup; this file is not
 a deployment configuration. No secret values are stored here.
 
 Both image builds and local isolated SQL checks now run in CI; a successful remote
 run is still required before the first PR merges. No Azure access or deployment is part of this baseline.
+
+
+Milestone 4: own-domain history/item/bill endpoints are implemented, with binary
+bill contents in SQL and scoped download checks. New visit POST and history DELETE
+remain explicitly unavailable until milestone 5 coordinates restaurant writes.
+The internal visit writer is validated but is not exposed as an uncoordinated
+mutation. OpenAPI records these temporary gates. Coverage now gates restaurant
+and dining core modules independently; CI also runs disposable real SQL transfers.

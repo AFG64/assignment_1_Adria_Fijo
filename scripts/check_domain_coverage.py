@@ -22,3 +22,10 @@ for module in ('api', 'catalog', 'geocoding', 'seed'):
     print(f'{filename}: {percent:.2f}%')
     if percent < 70:
         raise SystemExit(f'{filename} is below 70% coverage')
+
+for module in ('api', 'store'):
+    filename = f'services/dining/{module}.py'
+    percent = report['files'][filename]['summary']['percent_covered']
+    print(f'{filename}: {percent:.2f}%')
+    if percent < 70:
+        raise SystemExit(f'{filename} is below 70% coverage')
