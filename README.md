@@ -97,7 +97,7 @@ The planned ownership, business rules, and interactions are defined in [`docs/DO
 Run the tests and measure coverage of the two backend feature domains with:
 
 ```sh
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov-report=term-missing
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing
 ```
 
 Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.
@@ -145,7 +145,7 @@ For local checks:
 ```sh
 python -m pip install -r requirements-dev.txt
 python scripts/validate_contracts.py --require-system
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov-report=term-missing --cov-report=json
+python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
 python scripts/check_stack.py
 ```
@@ -193,5 +193,50 @@ Removal currently returns 503 `coordination_pending`, leaving records intact.
 Successful deletion requires the dining HTTP cleanup protocol in milestone 5.
 Unit tests enforce at least 70% on each restaurant core module, alongside the
 transitional legacy domain/runtime floors. The SQL HTTP check runs in CI after
-compose starts and cleans up only records it creates. No bill/visit flows are
-claimed by this increment.
+compose starts and cleans up only records it creates. Dining own-domain workflows are described below.
+
+
+### Dining SQL and Assignment 1 transfer
+
+Dining now lists history and stores ordered items and PNG/JPEG/PDF bill contents
+in its own SQL database. Downloads check the saved-entry, visit and bill IDs.
+Uploads are limited to 5 MiB and returned as attachments. Container replacement
+does not remove bill contents. The visit insertion operation is implemented and
+validated internally; its public POST and history DELETE return 503
+`coordination_pending` until milestone 5 provides the restaurant coordinator.
+Existing history, item and bill operations do not contact restaurants.
+
+Run `python scripts/check_dining_sql.py` with compose running. It creates two
+**local disposable** databases, tests repeated transfers, conflicts, original IDs,
+SQL bill bytes and scoped HTTP operations, and removes only those test databases.
+CI runs this check and enforces at least 70% on each dining core module.
+
+For existing Assignment 1 data, first stop writes and make an SQLite backup
+(using SQLite's backup API, not a file copy while writes may be active). Copy the
+adjacent `bills/` directory beside that backup. Keep both under ignored `data/`;
+never commit private bills or migrate them to the public demonstration system.
+Validate the copy without changing any target:
+
+```sh
+python scripts/transfer_assignment1.py data/assignment2-check/snapshot.sqlite3
+python scripts/check_dining_sql.py --snapshot data/assignment2-check/snapshot.sqlite3
+```
+
+The second command imports that copy twice into disposable local targets and
+compares all source fields, relationships and bill bytes. Originals are untouched.
+For an actual offline transfer, configure `RESTAURANTS_DATABASE_URL` and
+`DINING_DATABASE_URL` securely in the local environment, then run the first
+command with `--apply`. Never pass URLs as command arguments or paste credentials
+into chat. The targets must already have 001 applied. Stop all application writes
+and restaurant seeding; use empty targets or exact matching rows. A seeded target
+may have conflicting IDs, which are rejected rather than overwritten.
+
+Each domain transfers in one transaction. The two databases cannot commit
+atomically: if the second domain fails, correct the cause and rerun against the
+same snapshot before allowing traffic. Existing identical IDs are skipped;
+conflicting IDs roll back that domain. Bill files must exist inside the copied
+`bills/` directory; missing, invalid, oversized or symlinked files are rejected.
+No migration file is changed by transfer. Cloud baseline uses synthetic data only.
+
+Azure readiness and the proposed resource inventory are in
+[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). No Azure deployment exists yet.
