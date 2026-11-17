@@ -1,9 +1,10 @@
 # Milestone 1: API transition
 
-These are proposed feature contracts. Only service startup and /health are implemented. The Assignment 1 app and its
+Restaurant collection endpoints now run on SQL Server; coordinated deletion remains a
+503 response until milestone 5. Dining feature contracts remain planned. The Assignment 1 app and its
 SQLite data remain the runnable baseline. OpenAPI files use JSON syntax, which is
 also valid YAML. Service manifests pin Flask, pymssql and Gunicorn; milestone 2 adds SQL startup
-and container health. Feature endpoints remain for later milestones.
+and container health. Dining features and the static UI remain for later milestones.
 
 ## Operation map
 
@@ -80,8 +81,8 @@ configuration and called endpoints against the target OpenAPI document. It
 always requires both system files; there is no optional validation bypass.
 Negative acceptance cases run with the normal pytest suite.
 
-`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and APIs remain planned. Environment settings are proposed for
-those future services, not a claim that today's monolith reads them. Update this
+`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and APIs remain planned. Environment settings cover both implemented restaurant/runtime settings and planned
+peer calls. The monolith continues to use its own configuration. Update this
 inventory alongside implementation, including any added settings and defaults.
 `LOCAL_PLACEHOLDER_*` explicitly marks unconfirmed student ID, username prefix,
 class resource group, GitHub registry owner and resource names. Public URL and

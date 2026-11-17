@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=./system.schema.json
-# Target API architecture; only startup, SQL migrations and health run today.
+# Restaurant APIs implemented except coordinated removal; dining APIs still planned.
 # Student-authored schema from Assignment 2 §8a, not professor-provided.
 # LOCAL_PLACEHOLDER values must be confirmed/replaced before Azure setup.
 student: LOCAL_PLACEHOLDER_STUDENT

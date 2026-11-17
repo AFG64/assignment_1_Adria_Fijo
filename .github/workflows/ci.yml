@@ -17,7 +17,7 @@ jobs:
       - name: Validate system and proposed API contracts
         run: python scripts/validate_contracts.py --require-system
       - name: Test existing behavior and measure each domain
-        run: python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov-report=term-missing --cov-report=json
+        run: python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov-report=term-missing --cov-report=json
       - run: python scripts/check_domain_coverage.py
   containers-and-sql:
     runs-on: ubuntu-latest
@@ -32,6 +32,8 @@ jobs:
         run: docker compose up --build -d --wait --wait-timeout 240
       - name: Own SQL, login isolation, repeat boot and restart persistence
         run: python scripts/check_stack.py
+      - name: Restaurant SQL API workflows
+        run: python scripts/check_restaurant_api.py
       - name: Logs on failure
         if: failure()
         run: docker compose logs --tail 100
