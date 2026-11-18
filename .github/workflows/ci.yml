@@ -36,6 +36,8 @@ jobs:
         run: python scripts/check_restaurant_api.py
       - name: Dining SQL and repeatable transfer
         run: python scripts/check_dining_sql.py
+      - name: Service coordination and stopped-peer recovery
+        run: python scripts/check_seam.py
       - name: Logs on failure
         if: failure()
         run: docker compose logs --tail 100

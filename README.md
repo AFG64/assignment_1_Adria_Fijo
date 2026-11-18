@@ -189,8 +189,7 @@ be entered manually offline. Address search uses a bounded timeout, one-second
 rate limit and a 256-entry in-memory success cache in the single worker. Cache
 contents reset on restart. Do not bulk-geocode or use autocomplete.
 
-Removal currently returns 503 `coordination_pending`, leaving records intact.
-Successful deletion requires the dining HTTP cleanup protocol in milestone 5.
+Removal now coordinates dining cleanup over HTTP; see milestone 5 below.
 Unit tests enforce at least 70% on each restaurant core module, alongside the
 transitional legacy domain/runtime floors. The SQL HTTP check runs in CI after
 compose starts and cleans up only records it creates. Dining own-domain workflows are described below.
@@ -201,9 +200,8 @@ compose starts and cleans up only records it creates. Dining own-domain workflow
 Dining now lists history and stores ordered items and PNG/JPEG/PDF bill contents
 in its own SQL database. Downloads check the saved-entry, visit and bill IDs.
 Uploads are limited to 5 MiB and returned as attachments. Container replacement
-does not remove bill contents. The visit insertion operation is implemented and
-validated internally; its public POST and history DELETE return 503
-`coordination_pending` until milestone 5 provides the restaurant coordinator.
+does not remove bill contents. Visit creation now uses the restaurant coordinator and history DELETE performs
+idempotent cleanup under the dining lock (see milestone 5 below).
 Existing history, item and bill operations do not contact restaurants.
 
 Run `python scripts/check_dining_sql.py` with compose running. It creates two
@@ -240,3 +238,18 @@ No migration file is changed by transfer. Cloud baseline uses synthetic data onl
 
 Azure readiness and the proposed resource inventory are in
 [AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). No Azure deployment exists yet.
+
+### Service coordination (milestone 5)
+
+Dining now records visits through the restaurant API: it validates the saved ID,
+marks it visited, then commits the visit. Peer failure produces an explicit 503;
+POST is not automatically retried. When an own write cannot be confirmed, check
+history before submitting again. Restaurant status may remain visited after a
+failed attempt. Saved-entry deletion removes the saved row, then asks dining to
+clear history/items/bill bytes; 503 cleanup_pending means retry that same DELETE
+until 204. The catalog row remains. See
+[coordination details](docs/assignment-2/SERVICE_COORDINATION.md) for concurrency,
+recovery and the distinction between peer failure and an uncertain own write.
+Run `python scripts/check_seam.py` against the local compose stack to check real
+service calls, stopped peers, recovery and concurrent deletion. No migration 002
+has been added or applied.

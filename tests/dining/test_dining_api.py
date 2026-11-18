@@ -30,8 +30,8 @@ def test_history(client):
     assert response.status_code == 200
     assert response.json[0]['visit_date'] == '2026-01-01'
     assert response.json[0]['items'][0]['unit_price'] == 2
-    assert web.post('/saved-restaurants/2/visits', json={}).status_code == 503
-    assert web.delete('/saved-restaurants/2/history').status_code == 503
+    assert web.post('/saved-restaurants/2/visits', json={}).status_code == 400
+    assert web.delete('/saved-restaurants/2/history').status_code == 204
 
 
 @pytest.mark.parametrize('data', [{}, [], {'item_name':' '}, {'item_name':'x','extra':1}, {'item_name':'x','quantity':True}, {'item_name':'x','quantity':0}, {'item_name':'x','unit_price':-1}, {'item_name':'x','unit_price':'nan'}, {'item_name':'x','unit_price':float('inf')}, {'item_name':'x','unit_price':10**400}])
