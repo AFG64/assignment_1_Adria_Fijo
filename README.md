@@ -107,8 +107,8 @@ Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (resta
 The Assignment 1 instructions above remain available. The split services currently
 implement startup, versioned SQL schemas, `/health` and request logs. Restaurants
 also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
-Dining features and static screens are still being ported; nginx serves
-a temporary setup page. Target endpoints/configuration are in `services/*/openapi.yaml`
+The static catalog, saved list and read-only details/history now run in ui/;
+dining entry, bill controls and editing screens remain milestone 7. Target endpoints/configuration are in `services/*/openapi.yaml`
 and `system.yaml`. The system schema is now the official Blackboard file, copied unchanged.
 
 Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
@@ -270,3 +270,19 @@ URL exists yet; replace it with the discovered Storage web endpoint at setup.
 Local Docker/CORS settings remain unchanged. No Azure resources, roles, cloud
 configuration or deployment were created by this repository correction. Actual
 initial setup commands will be documented here when authorized and executed.
+
+### Static collection UI (milestone 6)
+
+Open [http://localhost:8080/](http://localhost:8080/) with compose running. The
+static UI supports saved/catalog lists, all five filters, restaurant creation,
+saving catalog entries, confirmed removal, details and read-only dining history.
+Visit and bill entry/edit controls remain milestone 7. Filters and detail links
+use hash routes, so reload and browser Back work on static hosting.
+
+`python scripts/configure_ui.py` generates ui/config.js with local public API
+addresses. Use `--restaurants-url` and `--dining-url` to supply deployment HTTPS
+addresses; keep secrets out of this file. The generated local defaults are
+committed, so no additional frontend build step is needed for compose. See
+[static UI configuration and recovery](docs/assignment-2/STATIC_UI.md).
+Unknown removal outcomes retain a pending cleanup action until confirmed by 204;
+unknown POST outcomes require checking existing data before trying again.

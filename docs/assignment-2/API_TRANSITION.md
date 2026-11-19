@@ -1,8 +1,7 @@
-# API transition status — milestone 5
+# API transition status — milestone 6
 
 Restaurant and dining JSON APIs now run on isolated SQL databases, including
-server-side visit coordination and saved-entry/history deletion. Static feature
-UI remains the next work; ui/ currently serves a setup page. The Assignment 1
+server-side visit coordination and saved-entry/history deletion. Static collection lists/add/save/remove/filters/details now run in ui/, with read-only dining history. Dining/edit controls remain milestone 7. The Assignment 1
 monolith and SQLite source remain available for reference and offline transfer.
 OpenAPI files use JSON syntax, also valid YAML. Service manifests pin Flask,
 pymssql and Gunicorn. See [coordination details](SERVICE_COORDINATION.md) for
@@ -10,7 +9,7 @@ failure semantics, cleanup retries and concurrency.
 
 ## Operation map
 
-The static UI will resolve restaurant IDs into saved-entry IDs from restaurant
+The static UI resolves restaurant IDs into saved-entry IDs from restaurant
 responses, then use saved IDs for dining requests. IDs are not interchangeable.
 
 | Existing UI operation | Target service and operation |
@@ -77,7 +76,7 @@ rules, HTTPS public_url, Storage website naming and timeout bounds. Additional
 semantic checks validate peer references and called OpenAPI endpoints without
 changing the official schema. Negative acceptance tests exercise invalid values.
 
-`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and Azure provisioning remain planned; both APIs and cross-service coordination are implemented. Environment settings cover the service runtime and peer calls. The monolith continues to use its own configuration. Update this
+`system.yaml` describes the **target** split architecture. Its `ui/` path holds the static collection UI; each migration path holds `001_init.sql`. Remaining dining/editing UI and Azure provisioning remain planned; both APIs and cross-service coordination are implemented. Environment settings cover the service runtime and peer calls. The monolith continues to use its own configuration. Update this
 inventory alongside implementation, including any added settings and defaults.
 The user confirmed student/prefix `afijo2024` and class 3A on 17 November; registry namespace follows repository owner `AFG64`. The updated guide uses proposed personal group rg-afijo2024 and Storage account afijo2024ui.
 Names are unverified, not provisioned. public_url is an explicit reserved HTTPS

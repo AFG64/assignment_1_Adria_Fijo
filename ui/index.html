@@ -1,3 +1,45 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Picky setup</title></head>
-<body><main><h1>Picky</h1><p>The service containers are ready for development. The restaurant and dining screens are being migrated.</p></main></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Picky · Saved restaurants</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to restaurants</a>
+  <main class="page">
+    <header class="page-header">
+      <p class="eyebrow">Personal restaurant journal</p>
+      <div class="page-title-row"><h1>Picky</h1><button class="add-toggle" id="add-toggle" type="button" aria-label="Add a restaurant" aria-controls="add-panel" aria-expanded="false">+</button></div>
+      <p>Save places you want to try and restaurants you have visited.</p>
+      <nav class="page-nav" aria-label="Restaurant pages"><a href="#/saved" id="saved-nav">Saved restaurants</a><a href="#/catalog" id="catalog-nav">All restaurants</a></nav>
+    </header>
+    <p id="notice" class="message success" role="status" hidden></p>
+    <section id="cleanup" class="panel" aria-label="Pending removal cleanup" hidden></section>
+    <section id="add-panel" class="panel add-panel" aria-labelledby="add-heading" hidden>
+      <h2 id="add-heading">Add a restaurant</h2>
+      <form id="add-form">
+        <div class="field"><label for="title">Name (required)</label><input id="title" name="title" maxlength="300" required></div>
+        <div class="field-grid">
+          <div class="field"><label for="category_name">Category or cuisine</label><input id="category_name" name="category_name" maxlength="200"></div>
+          <div class="field"><label for="city">City</label><input id="city" name="city" maxlength="200"></div>
+          <div class="field"><label for="price">Price level</label><select id="price" name="price"><option value="">Not set</option><option value="1">1 / 4</option><option value="2">2 / 4</option><option value="3">3 / 4</option><option value="4">4 / 4</option></select></div>
+          <div class="field"><label for="rating">Your overall rating</label><input id="rating" name="rating" type="number" min="0" max="5" step="0.1"></div>
+        </div>
+        <div class="field"><label for="address">Location or street address</label><input id="address" name="address" maxlength="300" aria-describedby="location-help"><small id="location-help" class="field-hint">Optional. If supplied, this address is sent to OpenStreetMap's search service to look up coordinates.</small></div>
+        <div class="field"><label for="status">Status</label><select id="status" name="status"><option value="want_to_go">Want to go</option><option value="visited">Visited already</option></select></div>
+        <div class="field"><label for="notes">Notes</label><textarea id="notes" name="notes" maxlength="2000" rows="3"></textarea></div>
+        <p class="attribution">Location data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.</p>
+        <p id="add-error" class="message error" role="alert" tabindex="-1" hidden></p>
+        <div class="form-actions"><button type="submit">Save restaurant</button><button type="button" class="secondary-button" id="cancel-add">Cancel</button></div>
+      </form>
+    </section>
+    <section id="content" class="panel" tabindex="-1" aria-live="polite"><h2>Loading restaurants…</h2></section>
+    <noscript><p class="message error">Enable JavaScript to load restaurants from the APIs.</p></noscript>
+  </main>
+</body>
+</html>
