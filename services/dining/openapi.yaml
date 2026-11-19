@@ -3,7 +3,7 @@
   "info": {
     "title": "Picky dining API",
     "version": "0.1.0",
-    "description": "Milestone 4: SQL dining history, items and durable bills implemented. Visit creation and history deletion return coordination_pending (503) until milestone 5."
+    "description": "Dining SQL API with server-side restaurant coordination, explicit partial failure and idempotent history cleanup."
   },
   "paths": {
     "/saved-restaurants/{saved_id}/visits": {
@@ -38,8 +38,48 @@
       },
       "post": {
         "operationId": "recordVisit",
-        "description": "Not yet available: returns coordination_pending until milestone 5.",
+        "description": "Validates saved entry, marks it visited via bounded HTTP, then inserts a visit under an own-database lock. POST is not idempotent: no automatic retry. 503 distinguishes peer_unavailable (no visit inserted) from visit_outcome_uncertain (check history first). Restaurant status may remain visited after failure. Visit date validation uses the Europe/Madrid calendar, matching the static UI.",
         "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Visit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
             "content": {
@@ -98,8 +138,21 @@
     "/saved-restaurants/{saved_id}/history": {
       "delete": {
         "operationId": "deleteHistory",
-        "description": "Not yet available: returns coordination_pending until milestone 5.",
+        "description": "Idempotent deletion of own visits/items/bills under a per-saved-ID transaction lock; returns 204 even when already empty. Used by restaurant cleanup.",
         "responses": {
+          "204": {
+            "description": "Completed; no response body"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "503": {
             "description": "Own database or required peer unavailable; inspect error code before retrying",
             "content": {

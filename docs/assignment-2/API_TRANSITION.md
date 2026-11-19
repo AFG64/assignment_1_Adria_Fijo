@@ -1,14 +1,15 @@
-# Milestone 1: API transition
+# API transition status — milestone 6
 
-Restaurant collection endpoints now run on SQL Server; coordinated deletion remains a
-503 response until milestone 5. Dining feature contracts remain planned. The Assignment 1 app and its
-SQLite data remain the runnable baseline. OpenAPI files use JSON syntax, which is
-also valid YAML. Service manifests pin Flask, pymssql and Gunicorn; milestone 2 adds SQL startup
-and container health. Dining features and the static UI remain for later milestones.
+Restaurant and dining JSON APIs now run on isolated SQL databases, including
+server-side visit coordination and saved-entry/history deletion. Static collection lists/add/save/remove/filters/details now run in ui/, with read-only dining history. Dining/edit controls remain milestone 7. The Assignment 1
+monolith and SQLite source remain available for reference and offline transfer.
+OpenAPI files use JSON syntax, also valid YAML. Service manifests pin Flask,
+pymssql and Gunicorn. See [coordination details](SERVICE_COORDINATION.md) for
+failure semantics, cleanup retries and concurrency.
 
 ## Operation map
 
-The static UI will resolve restaurant IDs into saved-entry IDs from restaurant
+The static UI resolves restaurant IDs into saved-entry IDs from restaurant
 responses, then use saved IDs for dining requests. IDs are not interchangeable.
 
 | Existing UI operation | Target service and operation |
@@ -42,13 +43,13 @@ Dining calls restaurants `GET /saved-restaurants/{saved_id}` and
 Both services need a peer URL and explicit bounded timeout from configuration.
 Geocoding remains in restaurants and also needs a bounded timeout.
 
-There is no distributed transaction. The exact ordering, retry/idempotency and
-concurrent deletion protocol is intentionally unresolved until milestone 5. The
-contracts reserve 409 and 503 for conflicts and unavailable dependencies. Tests
-must demonstrate partial-write behavior before claiming these flows work. An
-error envelope has `error`, `message` and `retryable`; clients must not blindly
-retry a mutation merely because its HTTP status is 503. Own-database health must
-remain independent of peer availability.
+There is no distributed transaction. Dining validates and marks a saved entry
+visited over HTTP before committing a local visit under a per-saved-ID lock.
+Restaurant deletion revokes the saved entry first, then requests idempotent dining
+cleanup. 503 responses explicitly distinguish unconfirmed writes and pending
+cleanup. POST is not automatically retried; DELETE may safely repeat. The JSON
+error envelope contains `error`, `message` and `retryable`; own health remains
+independent of peer availability. See the coordination document for trade-offs.
 
 ## Checks and remaining gates
 
@@ -63,39 +64,24 @@ python scripts/check_domain_coverage.py
 
 The initial workflow runs these checks on pushes and PRs. Its coverage floor is
 applied separately to the existing two domain modules, not a combined percentage.
-It does not yet claim service-level or SQL integration coverage. Those gates must
-replace the transitional baseline as services are implemented.
+Restaurant and dining core modules also have independent coverage gates. Both
+images, local SQL workflows, transfers and cross-service HTTP/partial-failure
+checks run in CI; legacy domain floors are retained during the UI transition.
 
-The root `system.schema.json` is **student-authored from Assignment 2 §8a**,
-with user authorization on 15 November 2026. It is not official or
-professor-provided. It declares JSON Schema Draft 2020-12 and uses the pinned
-jsonschema validator. If an official schema appears later, compare/adapt ours
-and rerun the checks; compatibility with an unknown official schema is unverified.
+The root `system.schema.json` is now the official Blackboard schema, copied
+unchanged on 19 November. It replaces the historical student-authored version.
+See [schema provenance](SYSTEM_SCHEMA.md) and [requirement updates](REQUIREMENT_UPDATES.md).
+CI validates Draft 2020-12, including required PORT/DATABASE_URL, secret/default
+rules, HTTPS public_url, Storage website naming and timeout bounds. Additional
+semantic checks validate peer references and called OpenAPI endpoints without
+changing the official schema. Negative acceptance tests exercise invalid values.
 
-Local interpretations: exactly two services; closed objects to catch misspellings;
-ports 1–65535; positive HTTP timeouts; nonsecret settings require a default;
-secret settings require `secret: true` and forbid defaults. The schema checks
-structure, not Azure naming rules, provisioned resources or live availability.
-The validation script also checks UI/peer service references, declared peer URL
-configuration and called endpoints against the target OpenAPI document. It
-always requires both system files; there is no optional validation bypass.
-Negative acceptance cases run with the normal pytest suite.
-
-`system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and cross-service coordination remain planned; own-domain restaurant and dining APIs are implemented. Environment settings cover both implemented restaurant/runtime settings and planned
-peer calls. The monolith continues to use its own configuration. Update this
+`system.yaml` describes the **target** split architecture. Its `ui/` path holds the static collection UI; each migration path holds `001_init.sql`. Remaining dining/editing UI and Azure provisioning remain planned; both APIs and cross-service coordination are implemented. Environment settings cover the service runtime and peer calls. The monolith continues to use its own configuration. Update this
 inventory alongside implementation, including any added settings and defaults.
-The user confirmed student/prefix `afijo2024` and class group `rg-sdd-3a` on 17 November; registry namespace follows repository owner `AFG64`. Resource names are proposed, not provisioned. Public URL and
-CORS origin currently describe localhost only. Confirm identities and replace
-all placeholders with actual resources/URLs before Azure setup; this file is not
+The user confirmed student/prefix `afijo2024` and class 3A on 17 November; registry namespace follows repository owner `AFG64`. The updated guide uses proposed personal group rg-afijo2024 and Storage account afijo2024ui.
+Names are unverified, not provisioned. public_url is an explicit reserved HTTPS
+placeholder; local CORS stays localhost. Replace the placeholder with the discovered Storage endpoint before deployment; this file is not
 a deployment configuration. No secret values are stored here.
 
 Both image builds and local isolated SQL checks now run in CI; a successful remote
 run is still required before the first PR merges. No Azure access or deployment is part of this baseline.
-
-
-Milestone 4: own-domain history/item/bill endpoints are implemented, with binary
-bill contents in SQL and scoped download checks. New visit POST and history DELETE
-remain explicitly unavailable until milestone 5 coordinates restaurant writes.
-The internal visit writer is validated but is not exposed as an uncoordinated
-mutation. OpenAPI records these temporary gates. Coverage now gates restaurant
-and dining core modules independently; CI also runs disposable real SQL transfers.

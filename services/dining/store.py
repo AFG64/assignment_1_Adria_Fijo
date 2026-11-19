@@ -1,6 +1,8 @@
 """Dining-owned SQL operations. Saved IDs are external references."""
 from contextlib import contextmanager
+from datetime import datetime
 import os
+from zoneinfo import ZoneInfo
 
 from service_runtime.database import connect
 
@@ -45,8 +47,12 @@ def bill_type(content):
     raise ValueError('Upload a PNG, JPEG or PDF bill')
 
 
-def record_visit(cursor, saved_id, visit_date, rating=None, notes=None):
-    """Own write for the future coordinator; callers must validate the external ID."""
+def journal_today():
+    return datetime.now(ZoneInfo('Europe/Madrid')).date()
+
+
+def validate_visit(saved_id, visit_date, rating=None, notes=None):
+    """Validate the visit payload before any peer side effect."""
     import datetime
     import math
     if type(saved_id) is not int or not 1 <= saved_id <= 2147483647:
@@ -54,11 +60,21 @@ def record_visit(cursor, saved_id, visit_date, rating=None, notes=None):
     if not isinstance(visit_date, str):
         raise ValueError('Expected ISO date')
     date = datetime.date.fromisoformat(visit_date)
-    if date.isoformat() != visit_date or date > datetime.date.today():
+    if date.isoformat() != visit_date or date > journal_today():
         raise ValueError('Visit date must not be in the future')
     if rating is not None and (type(rating) not in (int, float) or not 0 <= rating <= 5 or not math.isfinite(rating)):
         raise ValueError('Invalid rating')
     if notes is not None and (not isinstance(notes, str) or len(notes) > 2000):
         raise ValueError('Invalid notes')
+
+
+def record_visit(cursor, saved_id, visit_date, rating=None, notes=None):
+    validate_visit(saved_id, visit_date, rating, notes)
     cursor.execute('INSERT INTO dbo.visits (saved_restaurant_id,visit_date,rating,notes) OUTPUT INSERTED.id VALUES (%s,%s,%s,%s)', (saved_id, visit_date, rating, notes))
     return cursor.fetchone()['id']
+
+
+def lock_saved(cursor, saved_id):
+    cursor.execute("DECLARE @r int; EXEC @r=sp_getapplock @Resource=%s, @LockMode='Exclusive', "
+                   "@LockOwner='Transaction', @LockTimeout=2000; "
+                   "IF @r<0 THROW 50001, 'Saved entry busy; retry later', 1;", (f'saved:{saved_id}',))

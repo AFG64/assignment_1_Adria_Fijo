@@ -27,6 +27,7 @@ def test_target_system_passes():
     'secret_default', 'secret_false_without_default', 'no_default',
     'zero_timeout', 'unknown_field', 'third_service', 'bad_url',
     'unknown_ui_peer', 'unknown_peer', 'missing_url_env', 'missing_endpoint',
+    'http_public_url', 'bad_storage_name', 'missing_port_env', 'large_timeout', 'null_default', 'old_swa_field',
 ])
 def test_invalid_system_fails(case):
     document = deepcopy(SYSTEM)
@@ -55,7 +56,32 @@ def test_invalid_system_fails(case):
         restaurant['calls'][0]['service'] = 'unknown'
     elif case == 'missing_url_env':
         restaurant['calls'][0]['url_env'] = 'UNDECLARED_URL'
+    elif case == 'http_public_url':
+        document['public_url'] = 'http://localhost:8080'
+    elif case == 'bad_storage_name':
+        document['ui']['storage_account'] = 'Invalid-Storage'
+    elif case == 'missing_port_env':
+        del restaurant['env']['PORT']
+    elif case == 'large_timeout':
+        restaurant['calls'][0]['timeout_s'] = 31
+    elif case == 'null_default':
+        restaurant['env']['PORT']['default'] = None
+    elif case == 'old_swa_field':
+        document['ui']['static_web_app'] = 'old-ui'
     elif case == 'missing_endpoint':
         restaurant['calls'][0]['endpoints'] = ['DELETE /not-documented']
     with pytest.raises((ValidationError, ValueError)):
         validate_system(document, SCHEMA, CONTRACTS)
+
+
+def test_official_schema_is_unchanged():
+    import hashlib
+    assert hashlib.sha256((ROOT / 'system.schema.json').read_bytes()).hexdigest() == 'a6d6b1f8cca72724cdcbf24a0ceaaa7d7ad94210d17456791ab5854bdf94fa05'
+
+
+def test_official_optional_service_fields_are_optional():
+    document = deepcopy(SYSTEM)
+    for service in document['services'].values():
+        for field in ('description', 'health', 'calls'):
+            service.pop(field)
+    validate_system(document, SCHEMA, CONTRACTS)

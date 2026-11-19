@@ -1,4 +1,4 @@
-"""Own-domain dining API; new visits await milestone 5 coordination."""
+"""Dining API with restaurant HTTP coordination and explicit partial failure."""
 from io import BytesIO
 import math
 
@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 from . import store
+from service_runtime.peer import call, PeerMissing, PeerUnavailable
 
 api = Blueprint('dining', __name__)
 MAX_BILL_BYTES = 5 * 1024 * 1024
@@ -36,6 +37,7 @@ def register(app):
 
 
 def require_visit(cursor, saved_id, visit_id):
+    store.lock_saved(cursor, saved_id)
     if not store.visit(cursor, saved_id, visit_id):
         abort(404)
 
@@ -48,13 +50,36 @@ def visits(saved_id):
 
 @api.post('/saved-restaurants/<int:saved_id>/visits')
 def create_visit(saved_id):
-    return error('coordination_pending', 'Recording visits awaits restaurant coordination.', 503)
+    data = request.get_json()
+    if not isinstance(data, dict) or set(data) - {'visit_date', 'rating', 'notes'} or 'visit_date' not in data:
+        raise ValueError('Expected visit fields')
+    store.validate_visit(saved_id, data['visit_date'], data.get('rating'), data.get('notes'))
+    try:
+        with store.transaction() as cursor:
+            store.lock_saved(cursor, saved_id)
+            saved = call('GET', f'/saved-restaurants/{saved_id}', 'RESTAURANTS_URL', 'RESTAURANTS_TIMEOUT_S')
+            if saved.get('id') != saved_id:
+                raise PeerUnavailable()
+            marked = call('PUT', f'/saved-restaurants/{saved_id}/visited', 'RESTAURANTS_URL', 'RESTAURANTS_TIMEOUT_S')
+            if marked.get('id') != saved_id or marked.get('status') != 'visited':
+                raise PeerUnavailable()
+            visit_id = store.record_visit(cursor, saved_id, data['visit_date'], data.get('rating'), data.get('notes'))
+            created = next(row for row in store.history(cursor, saved_id) if row['id'] == visit_id)
+        return jsonify(created), 201
+    except PeerMissing:
+        return error('saved_entry_missing', 'The saved entry was removed; no visit was recorded.', 404)
+    except PeerUnavailable:
+        return error('peer_unavailable', 'No visit recorded. Restaurant status may have changed; try again after checking the saved entry.', 503)
+    except pymssql.DatabaseError:
+        return error('visit_outcome_uncertain', 'Visit could not be confirmed. Restaurant may be marked visited. Check history before submitting again.', 503)
 
 
 @api.delete('/saved-restaurants/<int:saved_id>/history')
 def delete_history(saved_id):
-    # Keep deletion gated until the saved-entry concurrency protocol is implemented.
-    return error('coordination_pending', 'Removal awaits restaurant coordination.', 503)
+    with store.transaction() as cursor:
+        store.lock_saved(cursor, saved_id)
+        cursor.execute('DELETE FROM dbo.visits WHERE saved_restaurant_id=%s', (saved_id,))
+    return '', 204
 
 
 @api.post('/saved-restaurants/<int:saved_id>/visits/<int:visit_id>/items')

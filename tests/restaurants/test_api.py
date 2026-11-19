@@ -19,6 +19,7 @@ def client(monkeypatch):
     @contextmanager
     def transaction():
         yield cursor
+    monkeypatch.setattr(api, 'call', MagicMock(return_value=None))
     monkeypatch.setattr(catalog, 'transaction', transaction)
     monkeypatch.setattr(seed, 'transaction', transaction)
     app = Flask(__name__)
@@ -38,7 +39,7 @@ def client(monkeypatch):
  ('patch','/saved-restaurants/10',{'rating':4,'notes':'nice','would_go_back':True},200),
  ('put','/saved-restaurants/10/visited',None,200),
  ('put','/restaurants/1/location',{'mode':'manual','address':'Test','latitude':40,'longitude':-3},200),
- ('delete','/saved-restaurants/10',None,503),
+ ('delete','/saved-restaurants/10',None,204),
 ])
 def test_operations(client,method,path,data,code):
     web,cursor=client

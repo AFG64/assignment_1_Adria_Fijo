@@ -10,7 +10,7 @@ for name in ('restaurant_domain', 'dining_history'):
     if percent < 70:
         raise SystemExit(f'{filename} is below 70% coverage')
 
-for filename in ('service_runtime/application.py', 'service_runtime/database.py'):
+for filename in ('service_runtime/application.py', 'service_runtime/database.py', 'service_runtime/peer.py'):
     percent = report['files'][filename]['summary']['percent_covered']
     print(f'{filename}: {percent:.2f}%')
     if percent < 70:

@@ -7,6 +7,7 @@ from werkzeug.exceptions import HTTPException
 
 from . import catalog
 from .geocoding import locate
+from service_runtime.peer import call, PeerMissing, PeerUnavailable
 
 api = Blueprint('restaurants', __name__)
 
@@ -178,7 +179,11 @@ def location(restaurant_id):
 
 @api.delete('/saved-restaurants/<int:saved_id>')
 def remove(saved_id):
-    # Never silently orphan dining data while HTTP coordination is not implemented.
+    # Revoke first, commit, then clean dining. Repeating cleanup also works if absent.
     with catalog.transaction() as cursor:
-        found(catalog.get_saved(cursor, saved_id))
-    return error('coordination_pending', 'Removal is unavailable until dining cleanup is connected.', 503)
+        cursor.execute('DELETE FROM dbo.saved_restaurants WHERE id=%s', (saved_id,))
+    try:
+        call('DELETE', f'/saved-restaurants/{saved_id}/history', 'DINING_URL', 'DINING_TIMEOUT_S', expected=204)
+    except (PeerUnavailable, PeerMissing):
+        return error('cleanup_pending', 'Saved entry removed; dining history cleanup is pending. Retry this same DELETE to finish.', 503, retryable=True)
+    return '', 204

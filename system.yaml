@@ -1,18 +1,19 @@
 # yaml-language-server: $schema=./system.schema.json
-# Restaurant and dining own-domain APIs implemented; seam coordination remains planned.
-# Student-authored schema from Assignment 2 §8a, not professor-provided.
-# Confirmed naming; Azure resources below are planned, not provisioned.
-student: afijo2024
-prefix: afijo2024
-public_url: http://localhost:8080
+# Restaurant/dining APIs coordinate visits and deletion over bounded HTTP.
+# Official Blackboard schema supplied 19 November 2026, copied unchanged.
+# Guide-derived naming from authenticated IE identity; resources planned, not provisioned.
+student: afijo.ieu2024
+prefix: afijo-ieu2024
+# Storage website endpoint discovered after initial setup; application release pending.
+public_url: https://afijoieu2024ui.z28.web.core.windows.net
 ui:
   path: ui
-  static_web_app: afijo2024-ui
+  storage_account: afijoieu2024ui
   calls: [restaurants, dining]
 azure:
-  resource_group: rg-sdd-3a
-  container_apps_environment: afijo2024-env
-  sql_server: afijo2024-sql
+  resource_group: rg-afijo-ieu2024
+  container_apps_environment: afijo-ieu2024-env
+  sql_server: afijo-ieu2024-sql
   registry: ghcr.io/afg64
 services:
   restaurants:
@@ -36,10 +37,10 @@ services:
         url_env: DINING_URL
         endpoints: ['DELETE /saved-restaurants/{saved_id}/history']
         timeout_s: 2
-        on_failure: Do not report successful saved-entry deletion; show a retryable unavailable message. Partial-write and concurrency protocol remains milestone 5 work.
+        on_failure: Saved entry is revoked first. Return 503 cleanup_pending if dining cleanup is unconfirmed; retry the same idempotent DELETE until 204. Catalog retained.
     azure:
-      container_app: afijo2024-restaurants
-      sql_database: afijo2024-restaurants-db
+      container_app: afijo-ieu2024-restaurants
+      sql_database: afijo-ieu2024-restaurants-db
   dining:
     description: Visits, ordered items and durable bill contents; saved IDs are external references.
     path: services/dining
@@ -59,7 +60,7 @@ services:
         url_env: RESTAURANTS_URL
         endpoints: ['GET /saved-restaurants/{saved_id}', 'PUT /saved-restaurants/{saved_id}/visited']
         timeout_s: 2
-        on_failure: Return a clear peer-unavailable response when validation/status update cannot complete; do not claim consistent visit success. Retry and partial-write protocol remains milestone 5 work. Existing history reads use own database only.
+        on_failure: Return 503 peer_unavailable with no visit write, or visit_outcome_uncertain if own commit cannot be confirmed. Status may already be visited. Never blindly retry POST; check history. Own history and health do not call the peer.
     azure:
-      container_app: afijo2024-dining
-      sql_database: afijo2024-dining-db
+      container_app: afijo-ieu2024-dining
+      sql_database: afijo-ieu2024-dining-db

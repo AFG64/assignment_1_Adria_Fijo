@@ -107,9 +107,10 @@ Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (resta
 The Assignment 1 instructions above remain available. The split services currently
 implement startup, versioned SQL schemas, `/health` and request logs. Restaurants
 also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
-Dining features and static screens are still being ported; nginx serves
-a temporary setup page. Target endpoints/configuration are in `services/*/openapi.yaml`
-and `system.yaml`. The system schema is student-authored from brief §8a.
+The static UI in ui/ supports catalog/saved lists, details/location/personal
+edits, visit and item entry, and bill upload/download. Visit dates use Madrid
+time consistently in the browser and dining API. Endpoint contracts are in `services/*/openapi.yaml`
+and `system.yaml`. The system schema is now the official Blackboard file, copied unchanged.
 
 Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
 Desktop's Rosetta emulation. The real SQL checks also run on native amd64 in CI.
@@ -189,8 +190,7 @@ be entered manually offline. Address search uses a bounded timeout, one-second
 rate limit and a 256-entry in-memory success cache in the single worker. Cache
 contents reset on restart. Do not bulk-geocode or use autocomplete.
 
-Removal currently returns 503 `coordination_pending`, leaving records intact.
-Successful deletion requires the dining HTTP cleanup protocol in milestone 5.
+Removal now coordinates dining cleanup over HTTP; see milestone 5 below.
 Unit tests enforce at least 70% on each restaurant core module, alongside the
 transitional legacy domain/runtime floors. The SQL HTTP check runs in CI after
 compose starts and cleans up only records it creates. Dining own-domain workflows are described below.
@@ -201,9 +201,8 @@ compose starts and cleans up only records it creates. Dining own-domain workflow
 Dining now lists history and stores ordered items and PNG/JPEG/PDF bill contents
 in its own SQL database. Downloads check the saved-entry, visit and bill IDs.
 Uploads are limited to 5 MiB and returned as attachments. Container replacement
-does not remove bill contents. The visit insertion operation is implemented and
-validated internally; its public POST and history DELETE return 503
-`coordination_pending` until milestone 5 provides the restaurant coordinator.
+does not remove bill contents. Visit creation now uses the restaurant coordinator and history DELETE performs
+idempotent cleanup under the dining lock (see milestone 5 below).
 Existing history, item and bill operations do not contact restaurants.
 
 Run `python scripts/check_dining_sql.py` with compose running. It creates two
@@ -239,4 +238,62 @@ conflicting IDs roll back that domain. Bill files must exist inside the copied
 No migration file is changed by transfer. Cloud baseline uses synthetic data only.
 
 Azure readiness and the proposed resource inventory are in
-[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). No Azure deployment exists yet.
+[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). Initial resources were
+provisioned on 20 November; application release status is recorded by main’s
+CI/CD runs and each service’s health version.
+
+### Service coordination (milestone 5)
+
+Dining now records visits through the restaurant API: it validates the saved ID,
+marks it visited, then commits the visit. Peer failure produces an explicit 503;
+POST is not automatically retried. When an own write cannot be confirmed, check
+history before submitting again. Restaurant status may remain visited after a
+failed attempt. Saved-entry deletion removes the saved row, then asks dining to
+clear history/items/bill bytes; 503 cleanup_pending means retry that same DELETE
+until 204. The catalog row remains. See
+[coordination details](docs/assignment-2/SERVICE_COORDINATION.md) for concurrency,
+recovery and the distinction between peer failure and an uncertain own write.
+Run `python scripts/check_seam.py` against the local compose stack to check real
+service calls, stopped peers, recovery and concurrent deletion. No migration 002
+has been added or applied.
+
+### Updated deployment contract (19 November)
+
+Initial setup is defined in [infra/azure/main.bicep](infra/azure/main.bicep), with
+a nonsecret proposed plan and guarded CLI runner. See the exact setup steps,
+credential handling and migration checkpoint in
+[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The default command
+`python scripts/azure_setup.py plan` only prints the proposed resources.
+No Azure application deployment is claimed by the presence of these files.
+
+The supplied updated course guide supersedes the earlier shared-class Azure plan.
+Individual Assignment 2 uses your active Azure for Students subscription and a
+personal resource group rg-afijo-ieu2024. The UI goes to a Storage static website,
+the pipeline uses an OIDC managed identity, SQL uses the serverless free offer,
+and the Container Apps Log Analytics workspace is permitted. Read
+[requirement updates](docs/assignment-2/REQUIREMENT_UPDATES.md) and the updated
+[Azure readiness plan](docs/assignment-2/AZURE_READINESS.md) before setup.
+
+The official system.schema.json is copied unchanged and validated in CI.
+The Storage website endpoint discovered during setup is
+[the Picky UI](https://afijoieu2024ui.z28.web.core.windows.net). system.yaml uses
+that address; each main release generates the HTTPS API configuration and CORS.
+Initial resource creation, scoped roles and secret setup are documented in
+[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The main workflow's
+successful health/version checks determine whether an application release is live.
+
+### Static collection and dining UI (milestones 6–7)
+
+Open [http://localhost:8080/](http://localhost:8080/) with compose running. The
+static UI supports saved/catalog lists, all five filters, restaurant creation,
+saving catalog entries, confirmed removal, details, personal/location edits,
+visit/item entry and bill uploads/downloads. Filters and detail links
+use hash routes, so reload and browser Back work on static hosting.
+
+`python scripts/configure_ui.py` generates ui/config.js with local public API
+addresses. Use `--restaurants-url` and `--dining-url` to supply deployment HTTPS
+addresses; keep secrets out of this file. The generated local defaults are
+committed, so no additional frontend build step is needed for compose. See
+[static UI configuration and recovery](docs/assignment-2/STATIC_UI.md).
+Unknown removal outcomes retain a pending cleanup action until confirmed by 204;
+unknown POST outcomes require checking existing data before trying again.

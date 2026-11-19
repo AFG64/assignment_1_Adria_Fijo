@@ -3,7 +3,7 @@
   "info": {
     "title": "Picky restaurants API",
     "version": "0.1.0",
-    "description": "Restaurant SQL API implemented except coordinated deletion, which returns 503 until milestone 5. Initial schema and seeded catalog remain 001 only."
+    "description": "Restaurant SQL API with coordinated deletion through dining HTTP; own health remains independent of peer availability."
   },
   "paths": {
     "/restaurants": {
@@ -538,20 +538,10 @@
       },
       "delete": {
         "operationId": "removeSavedEntry",
-        "description": "Currently returns 503 coordination_pending without deleting anything; 404 if absent. Success contract is a target for milestone 5, when HTTP dining cleanup is connected.",
+        "description": "Commits saved-entry removal first, then requests idempotent dining history cleanup. 204 means both completed, including repeat/missing IDs. 503 cleanup_pending means saved entry is gone but dining cleanup is unconfirmed; retry the same DELETE. Catalog row remains.",
         "responses": {
           "204": {
             "description": "Completed; no response body"
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
           },
           "409": {
             "description": "Conflict",
@@ -656,7 +646,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/Health"
                 }
               }
             }
