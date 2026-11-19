@@ -109,7 +109,7 @@ implement startup, versioned SQL schemas, `/health` and request logs. Restaurant
 also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
 Dining features and static screens are still being ported; nginx serves
 a temporary setup page. Target endpoints/configuration are in `services/*/openapi.yaml`
-and `system.yaml`. The system schema is student-authored from brief §8a.
+and `system.yaml`. The system schema is now the official Blackboard file, copied unchanged.
 
 Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
 Desktop's Rosetta emulation. The real SQL checks also run on native amd64 in CI.
@@ -253,3 +253,20 @@ recovery and the distinction between peer failure and an uncertain own write.
 Run `python scripts/check_seam.py` against the local compose stack to check real
 service calls, stopped peers, recovery and concurrent deletion. No migration 002
 has been added or applied.
+
+### Updated deployment contract (19 November)
+
+The supplied updated course guide supersedes the earlier shared-class Azure plan.
+Individual Assignment 2 uses your active Azure for Students subscription and a
+new personal resource group rg-afijo2024. The UI goes to a Storage static website,
+the pipeline uses an OIDC managed identity, SQL uses the serverless free offer,
+and the Container Apps Log Analytics workspace is permitted. Read
+[requirement updates](docs/assignment-2/REQUIREMENT_UPDATES.md) and the updated
+[Azure readiness plan](docs/assignment-2/AZURE_READINESS.md) before setup.
+
+The official system.schema.json is copied unchanged and validated in CI. The
+reserved public_url https://not-deployed.invalid explicitly means no live cloud
+URL exists yet; replace it with the discovered Storage web endpoint at setup.
+Local Docker/CORS settings remain unchanged. No Azure resources, roles, cloud
+configuration or deployment were created by this repository correction. Actual
+initial setup commands will be documented here when authorized and executed.

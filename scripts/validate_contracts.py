@@ -1,4 +1,4 @@
-"""Validate target contracts using our student-authored system schema."""
+"""Validate target contracts against the unchanged professor-provided system schema."""
 import argparse
 from pathlib import Path
 
@@ -19,7 +19,7 @@ def validate_system(document, schema, contracts):
         if target not in services:
             raise ValueError(f'Unknown UI service: {target}')
     for name, service in services.items():
-        for call in service['calls']:
+        for call in service.get('calls', []):
             target = call['service']
             if target not in services or target == name:
                 raise ValueError(f'Invalid peer: {name} -> {target}')
@@ -48,7 +48,7 @@ def main():
         validate(contracts[name])
         print(f'Valid OpenAPI: {path.relative_to(ROOT)}')
     validate_system(system, schema, contracts)
-    print('Valid system.yaml (student-authored schema; not deployment readiness)')
+    print('Valid system.yaml (official schema; deployment readiness checked separately)')
 
 
 if __name__ == '__main__':

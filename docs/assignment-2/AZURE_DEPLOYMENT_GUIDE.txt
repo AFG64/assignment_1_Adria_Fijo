@@ -1,0 +1,215 @@
+Assignment 2: deploying to your Azure for
+Students subscription
+Assignment 2 runs in your own Azure for Students subscription (A2 §7). It needs no credit card and
+can't charge you: when the credit runs out, your resources stop. Set up as below, an idle system uses
+almost none of the credit.
+
+This guide gives the order of the steps and the settings that matter. The exact commands are in the az
+documentation and in the class slides; figuring them out is part of the work, and every command you
+run goes in your README as the initial setup. The boxes marked Watch out are the problems that cost
+people hours.
+
+
+What you build
+
+  resource group rg-<prefix>
+   ├─ storage account <prefix without hyphens>ui        static website: the UI
+   ├─ managed identity <prefix>-github                  the pipeline signs in as it (OIDC)
+   ├─ Container Apps environment <prefix>-env
+   │     ├─ Container App <prefix>-<service A>
+   │     └─ Container App <prefix>-<service B>
+   ├─ Log Analytics workspace                           the environment's logs (created with it)
+   └─ SQL server <prefix>-sql
+         ├─ database <prefix>-<service A>-db      serverless, free offer
+         └─ database <prefix>-<service B>-db      serverless, free offer
+
+
+
+<prefix> is your IE username with . replaced by - ( jsmith-ieu2023 ). Nothing else goes in the
+resource group.
+
+
+Before you start
+
+       A terminal with az , gh and sqlcmd . Azure Cloud Shell (Bash) has all three. On your own
+       machine, install them; sqlcmd can also run from the SQL Server Docker image.
+       CI that pushes a SHA-tagged image of each service to GHCR on main . Build the images with
+       provenance: false .
+
+
+
+  Watch out: zsh on a Mac. The commands in the slides are Bash. In zsh, "repo:$GH_REPO:ref:…"
+  silently loses characters, because zsh reads :r as a modifier, and the federated credential ends
+  up wrong. Type bash first, or write ${GH_REPO} .
+
+
+
+Steps
+1. Subscription and region. Activate Azure for Students with your IE email, then select it with az
+account set .
+
+
+
+   Watch out: your five regions are not everyone's. Azure for Students only allows five regions, and
+   the list changes from one subscription to another. List yours before creating anything: it's the
+   policy assignment "Allowed resource deployment regions" ( az policy assignment list ). Pick
+   one region from your list and use it for everything. Don't copy a classmate's region: France
+   Central, for example, isn't on every list. If you create something outside your list, you get
+   RequestDisallowedByAzure , or in the portal "This policy maintains a set of best available
+   regions…".
+
+
+2. Providers and resource group. Register Microsoft.App , Microsoft.OperationalInsights ,
+Microsoft.Sql , Microsoft.Storage and Microsoft.ManagedIdentity once (it takes minutes), then
+create rg-<prefix> .
+
+3. The UI: a Storage static website. Create a StorageV2 account ( Standard_LRS ) and enable the
+static website with index.html . Its web endpoint ( https://<name>.z<N>.web.core.windows.net ) is
+your system's public address and the only origin your services accept. Storage names are 3–24
+lowercase letters and digits, unique in all of Azure.
+
+4. SQL server and two serverless databases. One server, one database per service: General Purpose,
+serverless, Gen5, 0.5–1 vCore, locally redundant backups, on the free offer ( --use-free-limit true -
+-free-limit-exhaustion-behavior AutoPause ). Firewall: allow Azure services. Then create one
+contained user per database, which can reach only its own database and can run migrations
+( db_ddladmin , db_datareader , db_datawriter ). To do this, open the firewall to your IP, and close it
+again afterwards.
+
+
+   Watch out: the free offer. It fixes the auto-pause at 60 minutes and the size at 32 GB: don't pass
+   --auto-pause-delay or --max-size . It isn't available in every region (not in spaincentral ). If az
+   sql db create says "free limit database is not supported", put the SQL server in another region
+   from your list; the server can be in a different region from the rest.
+
+
+5. Container Apps. Create the environment (Azure also creates a Log Analytics workspace for the
+containers' logs: keep it, it is part of the allowance), then one Container App per service: external
+ingress on the port your container listens on, minimum 0 and maximum 1 replicas, small CPU and
+memory. Start with the placeholder image mcr.microsoft.com/k8se/quickstart:latest ; your first
+deploy replaces it. Configure everything through environment variables: the connection string as a
+secret ( --secrets , then secretref: ), and the URL of the other service and the UI's address for CORS
+as plain variables.
+  Watch out: CORS goes in your code, not in Container Apps. The ingress CORS setting ( az
+  containerapp ingress cors ) rejects the browser's preflight for JSON requests with 403 "CORS
+  preflight headers denied" . So reads work, and every POST or PUT from the UI fails with "Failed
+  to fetch". Leave it off. Allow the UI's origin in the service itself (FastAPI CORSMiddleware , Flask-
+  CORS, Express cors() ), reading it from an environment variable such as CORS_ORIGINS , and
+  allow the Content-Type header.
+  Watch out: the connection string. Use the same format as in compose, with the Azure host,
+   <prefix>-<service>-db and the service's user. Azure SQL only accepts encrypted connections
+  ( Encrypt=yes with pyodbc ; encrypt: true with Node's mssql ).
+
+
+6. The pipeline's identity. IE accounts can't create service principals, so create a user-assigned
+managed identity, <prefix>-github , and give it Contributor on your resource group only. Then add a
+federated credential for repo:<owner>/<repo>:ref:refs/heads/main (issuer
+https://token.actions.githubusercontent.com , audience api://AzureADTokenExchange ).
+
+
+
+  Watch out: the subject must match exactly. GitHub may send the subject with numeric IDs
+  ( repo:owner@123/repo@456:ref:refs/heads/main ) instead of names. Register both. If
+   azure/login fails with "No matching federated identity record", the error message shows the
+  subject GitHub sent: compare it with az identity federated-credential list .
+
+
+7. GitHub secrets and variables. Secrets: AZURE_CLIENT_ID (the identity's client ID),
+AZURE_TENANT_ID , AZURE_SUBSCRIPTION_ID , and one database password per service. Variables:
+PREFIX , RESOURCE_GROUP , UI_STORAGE . No password is ever written in a file in the repository.
+
+
+8. The CD workflow. On push to main : call ci.yml ( workflow_call ), then a deploy job with
+permissions: id-token: write . It must:
+
+
+      sign in with azure/login (client, tenant and subscription IDs);
+      point each Container App at ghcr.io/<owner>/<image>:$GITHUB_SHA ;
+      write ui/config.js with the services' addresses;
+      upload ui/ to the $web container;
+      retry /health on each service for a few minutes, failing the run if it never returns 200 .
+
+Change CI's own push: trigger to branches-ignore: [main] , so CI doesn't run twice.
+   Watch out: the first deploy fails, on purpose. New GHCR packages are private, so Azure can't
+   pull them ("Authentication failed when pulling container image"). Make each package public in its
+   GitHub settings, then re-run the failed job. If the error stays with a public package, the image was
+   built without provenance: false .
+   Watch out: cold starts. The first request after a quiet period starts the container and may find the
+   database paused. Resuming takes about a minute, and meanwhile connections fail: error 40613 ,
+   or with pymssql a DB-Lib error 20002 / 20003 connection timeout. Your code connects with
+   retries and backoff. Until it's ready, Azure answers that first request with 503 "App port is not
+   ready" after about 30 seconds. That's accepted (A2 §7.5), but your UI must handle it: show a
+   clear "starting up, try again" message or retry. The health check in CD waits long enough.
+
+
+9. Read access for the professors. Give amartini@faculty.ie.edu and bserra@faculty.ie.edu the
+Reader role on your resource group, so the deployment can be checked.
+
+From then on, only the pipeline changes anything. Write steps 2–7 in your README, without
+passwords.
+
+
+When something fails
+
+ Symptom                                                        Likely cause
+
+ RequestDisallowedByAzure , or in the portal "This policy       Region not on your subscription's list (step 1)
+ maintains a set of best available regions…"
+
+ MissingSubscriptionRegistration                                A provider isn't registered yet (step 2)
+
+ "free limit database is not supported for … region"            Free offer not in that region: move the SQL
+                                                                server (step 4)
+
+ "Only default value … is allowed for Free Limit database"      Remove --auto-pause-delay and --
+                                                                max-size (step 4)
+
+ azure/login : "No matching federated identity record"          Subject mismatch, often zsh or the numeric-
+                                                                ID format (step 6)
+
+ azure/login can't get an ID token                              Missing permissions: id-token: write
+
+ AuthorizationFailed in CD                                      The identity's role assignment is missing or
+                                                                not yet active: wait five minutes
+
+ "Authentication failed when pulling container image"           GHCR package still private, or no
+                                                                provenance: false (step 8)
+
+ UI loads data but POST fails with "Failed to fetch"            Ingress CORS is on, or your code doesn't
+                                                                allow Content-Type (step 5)
+
+ First request after idle: 503 "App port is not ready" , then   Normal cold start: the database was
+ fine                                                           resuming. The UI must handle it (step 8)
+ Symptom                                                      Likely cause
+
+ App starts and stops, /health never 200                      Wrong DATABASE_URL , wrong --target-
+                                                              port , or no retry while the database
+                                                              resumes
+
+ Login failed for user                                        User created in the wrong database, or
+                                                              password mismatch
+
+
+Read the logs before guessing: az containerapp logs show --name <app> --resource-group rg-
+<prefix> --follow (and --type system for start-up and probe events).
+
+
+
+Group project: the IE subscription
+
+The group project doesn't run in anyone's Azure for Students. It runs in IE's subscription, "Azure
+Simple IE Instituto de Empresa, S.L.", where rg-sdd-<class>-g<N> already exists and every member
+has Contributor. It's the same system with the group prefix sdd-<class>-g<N> . What changes:
+
+      Access. Accept the email from Microsoft Invitations on behalf of IE Instituto de Empresa, S.L.
+      Then sign in to that directory: az login --tenant 5ca2bc70-353c-4d1f-b7d7-7f2b2259df68 ,
+      adding --use-device-code if the browser sign-in fails. In the portal, switch directory.
+      Skip what's already done. The resource group exists (in westeurope , which is the region to use)
+      and the providers are registered. You can't create resource groups or assign roles there.
+      Databases without the free offer. It allows only 10 databases in the whole subscription. Use
+      serverless with a 15-minute auto-pause and 2 GB.
+      Identity. sdd-<class>-g<N>-github is already created, with Contributor on your resource group.
+      You only add the federated credentials for the group repository and set the GitHub secrets there.
+      No Reader step. The professors already have access.
+      One member runs the setup. The others create resources only in the group's resource group,
+      with the group prefix. Don't touch other groups' resources.
+

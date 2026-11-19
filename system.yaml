@@ -1,16 +1,17 @@
 # yaml-language-server: $schema=./system.schema.json
 # Restaurant/dining APIs coordinate visits and deletion over bounded HTTP.
-# Student-authored schema from Assignment 2 §8a, not professor-provided.
+# Official Blackboard schema supplied 19 November 2026, copied unchanged.
 # Confirmed naming; Azure resources below are planned, not provisioned.
 student: afijo2024
 prefix: afijo2024
-public_url: http://localhost:8080
+# No cloud deployment exists yet; reserved HTTPS placeholder satisfies the official format.
+public_url: https://not-deployed.invalid
 ui:
   path: ui
-  static_web_app: afijo2024-ui
+  storage_account: afijo2024ui
   calls: [restaurants, dining]
 azure:
-  resource_group: rg-sdd-3a
+  resource_group: rg-afijo2024
   container_apps_environment: afijo2024-env
   sql_server: afijo2024-sql
   registry: ghcr.io/afg64

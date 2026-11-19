@@ -69,26 +69,19 @@ Restaurant and dining core modules also have independent coverage gates. Both
 images, local SQL workflows, transfers and cross-service HTTP/partial-failure
 checks run in CI; legacy domain floors are retained during the UI transition.
 
-The root `system.schema.json` is **student-authored from Assignment 2 §8a**,
-with user authorization on 15 November 2026. It is not official or
-professor-provided. It declares JSON Schema Draft 2020-12 and uses the pinned
-jsonschema validator. If an official schema appears later, compare/adapt ours
-and rerun the checks; compatibility with an unknown official schema is unverified.
-
-Local interpretations: exactly two services; closed objects to catch misspellings;
-ports 1–65535; positive HTTP timeouts; nonsecret settings require a default;
-secret settings require `secret: true` and forbid defaults. The schema checks
-structure, not Azure naming rules, provisioned resources or live availability.
-The validation script also checks UI/peer service references, declared peer URL
-configuration and called endpoints against the target OpenAPI document. It
-always requires both system files; there is no optional validation bypass.
-Negative acceptance cases run with the normal pytest suite.
+The root `system.schema.json` is now the official Blackboard schema, copied
+unchanged on 19 November. It replaces the historical student-authored version.
+See [schema provenance](SYSTEM_SCHEMA.md) and [requirement updates](REQUIREMENT_UPDATES.md).
+CI validates Draft 2020-12, including required PORT/DATABASE_URL, secret/default
+rules, HTTPS public_url, Storage website naming and timeout bounds. Additional
+semantic checks validate peer references and called OpenAPI endpoints without
+changing the official schema. Negative acceptance tests exercise invalid values.
 
 `system.yaml` describes the **target** split architecture. Its `ui/` path currently holds a setup page; each migration path holds `001_init.sql`. Feature UI and Azure provisioning remain planned; both APIs and cross-service coordination are implemented. Environment settings cover the service runtime and peer calls. The monolith continues to use its own configuration. Update this
 inventory alongside implementation, including any added settings and defaults.
-The user confirmed student/prefix `afijo2024` and class group `rg-sdd-3a` on 17 November; registry namespace follows repository owner `AFG64`. Resource names are proposed, not provisioned. Public URL and
-CORS origin currently describe localhost only. Confirm identities and replace
-all placeholders with actual resources/URLs before Azure setup; this file is not
+The user confirmed student/prefix `afijo2024` and class 3A on 17 November; registry namespace follows repository owner `AFG64`. The updated guide uses proposed personal group rg-afijo2024 and Storage account afijo2024ui.
+Names are unverified, not provisioned. public_url is an explicit reserved HTTPS
+placeholder; local CORS stays localhost. Replace the placeholder with the discovered Storage endpoint before deployment; this file is not
 a deployment configuration. No secret values are stored here.
 
 Both image builds and local isolated SQL checks now run in CI; a successful remote
