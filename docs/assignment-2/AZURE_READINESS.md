@@ -82,3 +82,23 @@ user can capture before evidence and explicitly confirm it before migration 002.
 The committed migration checkpoint remains maximum_version=1 and
 before_evidence_confirmed=false. Do not edit an applied migration or import
 private Assignment 1 records without a separate explicit request.
+
+## First application release
+
+PR #10 passed both branch/PR CI gates and merged at
+aa656e31904fb5b2b84322a5e15dc30f053d18a3. Main's
+[CI/CD run 44640494444](https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44640494444)
+passed on that same SHA. Both service /health responses report status/db ok and
+that version, and the Storage config.js/release.json readback matches. The actual
+packages were already Public when inspected; anonymous exact-SHA manifest checks
+passed without changing visibility. No failed GitHub workflow is claimed from
+the separate initial ARM credential-concurrency failure.
+
+Current API origins are the public Container App ingress hosts:
+
+- https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io
+- https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io
+
+The UI calls these origins directly over HTTPS, with application CORS restricted
+to the Storage website. See the latest successful main release for subsequent
+versions; resource names/origins remain the same across those releases.

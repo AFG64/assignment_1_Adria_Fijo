@@ -196,3 +196,26 @@ repository secret/variable names were verified after configuration. The discover
 website endpoint was committed to system.yaml before the first application PR
 merge. Subsequent application/image/environment/UI changes use the main pipeline;
 do not rerun bootstrap as the release procedure.
+
+## Live operating checks
+
+The first main application release succeeded on 20 November. Public component
+links are at the top of README.md. Read /health on each service and compare its
+version with the successful main workflow; neither service's health depends on
+its peer. release.json at the website reports the published UI SHA. config.js
+contains only the two public API origins; no database credentials belong there.
+
+To inspect a startup/SQL-resume problem, read console/system logs on the named
+app. For example (no credential values):
+
+```sh
+az containerapp logs show --resource-group rg-afijo-ieu2024 --name afijo-ieu2024-dining --type console --tail 100 --format text
+az containerapp logs show --resource-group rg-afijo-ieu2024 --name afijo-ieu2024-dining --type system --tail 100 --format text
+```
+
+The JSON log format is JSON Lines, not one JSON document. Migration startup logs
+identify applied filenames and no-op reruns. Never fix a startup failure by
+deleting a populated database or editing an applied migration. After a successful
+release/release retry, verify stable synthetic IDs/item values and exact bill
+bytes using azure_baseline.py inspect. This technical check does not collect or
+confirm the user's report evidence or authorize 002.
