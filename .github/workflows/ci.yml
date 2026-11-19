@@ -1,5 +1,9 @@
-name: CI baseline
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_call:
 permissions:
   contents: read
 jobs:
@@ -21,6 +25,14 @@ jobs:
         run: node --check ui/app.js && node --check ui/config.js
       - name: Validate system and proposed API contracts
         run: python scripts/validate_contracts.py --require-system
+      - name: Validate deployment plan and migration checkpoint offline
+        run: python scripts/azure_deploy.py validate
+      - name: Compile Azure infrastructure without signing in
+        run: |
+          az bicep install --version v0.39.26
+          az bicep build --file infra/azure/main.bicep --outfile "$RUNNER_TEMP/picky-template.json"
+      - name: Lint GitHub workflows
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color
       - name: Test existing behavior and measure each domain
         run: python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing --cov-report=json
       - run: python scripts/check_domain_coverage.py
@@ -49,5 +61,4 @@ jobs:
       - name: Stop disposable CI containers
         if: always()
         run: docker compose down --volumes
-# Domain-module coverage remains transitional until the feature APIs are ported.
-# CI uses only its local SQL container; no Azure database is contacted.
+# Main calls these same gates through cd.yml. No Azure SQL is contacted by CI.

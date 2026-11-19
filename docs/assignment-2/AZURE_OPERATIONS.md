@@ -72,6 +72,54 @@ delete databases to recover. An existing group without the Picky ownership tag i
 refused. Initial setup can grant roles; the pipeline cannot change role grants.
 Do not rerun initial setup as the routine deployment mechanism.
 
+## Main release pipeline
+
+`ci.yml` runs on every feature push/PR and is reusable through workflow_call.
+`cd.yml` runs only on main pushes and calls those exact CI gates on the same SHA.
+CI builds both images and runs SQL tests only against its disposable local
+container. Bicep compilation, workflow lint and the migration checkpoint also run
+without cloud credentials; none connects to Azure SQL.
+
+After CI succeeds, two publish jobs build linux/amd64 images with VERSION set to
+the SHA and publish `ghcr.io/afg64/picky-restaurants:<SHA>` and
+`ghcr.io/afg64/picky-dining:<SHA>`. Provenance/SBOM manifests are disabled per the
+course deployment guide. The source label connects each package to the repo.
+`GITHUB_TOKEN` has packages:write only in this job. GHCR initially makes new
+packages private: make the two packages public as part of initial setup, then
+rerun the actual failed release if needed. Do not invent a failed run as evidence.
+
+The deploy job signs in via main-only OIDC and has id-token:write. It verifies the
+exact subscription and expected variables, and verifies anonymous access to both
+SHA images using an empty Docker configuration. Private images stop the release
+before app updates. Deployment concurrency is serialized, with in-progress runs
+allowed to finish. There is no branch/manual deployment trigger.
+
+After initial setup, discover the actual Storage primaryEndpoints.web address
+and commit it as system.yaml public_url **before merging the first release**.
+The script refuses a mismatching/reserved URL; it never invents the `z<N>` host.
+It discovers both existing Container App HTTPS ingress addresses and injects
+each service's peer URL, UI origin, port and version. Each DATABASE_URL is a
+Container App secret; the environment references its name. No database secret
+goes into UI files or CLI error output. Azure ingress CORS is absent; the Flask
+application accepts only the exact website origin.
+
+Each app uses Single revision mode, Consumption, 0–1 replicas and 0.25 CPU/0.5 GiB.
+A startup HTTP /health probe permits five minutes for migration/SQL resume;
+subsequent readiness/liveness use TCP so probes do not keep SQL awake. TCP health
+only proves a listening process; API own-data readiness is assessed by /health
+and normal API error responses. Independent release checks poll both services
+for at most six minutes each in parallel, requiring HTTP 200, status/db ok and
+the **new SHA**, so the old running revision cannot make a release appear passed.
+
+Only after both APIs pass does the job copy ui/ to a temporary staging directory,
+generate public config.js and release.json, and upload to Storage's `$web` with
+identity authentication and no-store cache headers. Published config and SHA are
+read back before success. No service schema/data is reset, and CI/CD never imports
+the private SQLite source. These app updates and UI uploads are separate writes,
+not an atomic release; if one fails, inspect the run/startup logs and rerun the
+same commit after fixing its cause. Do not restore an image missing an applied
+migration; recover schema through a new forward migration.
+
 ## Before migration 002
 
 The first application deployment must contain only migration 001. Populate
@@ -81,6 +129,12 @@ records and their before evidence. Do not automatically transfer private local
 Assignment 1 records to the public cloud. The existing offline transfer tool is
 available for an explicitly chosen, quiescent, copied source; it is not run by CD.
 
+`infra/azure/migration-checkpoint.json` currently permits version 001 only, with
+before_evidence_confirmed false. CI and deployment both reject a later migration.
+Only after the user's explicit confirmation may a change raise maximum_version
+and record before_evidence_confirmed true alongside the new migration. The file
+is an operational release gate, not an authored evidence/AI/ADR record.
+
 The user writes the hosting/migration/pipeline ADRs and AI usage records, and
 collects screenshots/run links/logs. Passing local tests does not establish cloud
 deployment, access, successful OIDC, public GHCR pulls or evidence completion.
@@ -89,3 +143,6 @@ References: supplied course guide (`AZURE_DEPLOYMENT_GUIDE.txt`),
 [SQL database resource properties](https://learn.microsoft.com/en-us/azure/templates/microsoft.sql/2023-08-01/servers/databases),
 [Storage static website setup](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to),
 and [Container Apps probes](https://learn.microsoft.com/en-us/azure/container-apps/health-probes).
+Pipeline references:
+[reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows),
+[GHCR publishing and visibility](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
