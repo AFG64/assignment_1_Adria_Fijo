@@ -83,16 +83,19 @@ named in the supplied guide as an explicit part of approved initial setup.
 Planned GitHub secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID,
 AZURE_SUBSCRIPTION_ID, RESTAURANTS_DB_PASSWORD, DINING_DB_PASSWORD.
 Planned repository variables: PREFIX, RESOURCE_GROUP, UI_STORAGE.
-Enter secrets securely in repository settings; names are planned and no CD
-workflow consumes them yet. No AZURE_CREDENTIALS class secret or Static Web App
+The local setup runner will configure these securely after authorization; the
+new CD workflow consumes them, but no repository secrets/variables have been
+created by this work yet. No AZURE_CREDENTIALS class secret or Static Web App
 deployment token is part of the updated plan.
 
-CD implementation remains milestone 9: main-only workflow calls reusable CI for
+Local CD implementation now covers milestone 9's pipeline portion: main-only workflow calls reusable CI for
 the same SHA, publishes both SHA-tagged GHCR images with packages:write and
 provenance:false, authenticates with id-token:write, deploys Container Apps,
 generates ui/config.js, uploads ui/ to Storage's $web container and polls health.
-When reusable CI is introduced, exclude main from its standalone push trigger to
-avoid duplicate runs. Do not disable the present main CI until CD invokes it.
+CI's standalone push trigger now excludes main; CD invokes the same reusable CI
+on main's exact SHA before publishing/deploying. This has been validated locally,
+not run on GitHub or Azure yet. See AZURE_OPERATIONS.md for initial setup/release
+steps, the public GHCR prerequisite and the 001 baseline verification commands.
 
 Keep ingress-level CORS off; application CORS must permit only the discovered
 Storage website origin and Content-Type. Keep cold-start failure/retry messages
@@ -107,8 +110,9 @@ assignment evidence; retain real failure/fix runs if they occur.
 2. Partly completed: active state, allowed regions, empty inventory, provider
    registration state and Owner role verified. Repeat resource-name/SKU checks
    that currently fail with SubscriptionNotFound; free-offer support is unverified.
-3. Implement/validate the exact setup/CD configuration and present the concrete
-   resource plan for authorization before creating resources, changing roles or deploying.
+3. Local setup/CD implementation and checks are ready. Review
+   `infra/azure/plan.json` and AZURE_OPERATIONS.md, then obtain authorization before
+   pushing, creating resources, changing roles/repository settings or deploying.
 4. Document actual setup commands in the technical README as they are run,
    without secrets. After setup, changes/deployments run through the pipeline.
 

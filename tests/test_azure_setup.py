@@ -68,6 +68,11 @@ def test_cli_failure_and_timeout_cannot_disclose_secrets(monkeypatch):
         common.command(['az', marker])
     assert marker not in str(exc.value)
     assert 'SubscriptionNotFound' in str(exc.value)
+    monkeypatch.setattr(common.subprocess, 'run', lambda *a, **k: SimpleNamespace(
+        returncode=1, stdout='', stderr='Unrecognized response (Aa1SecretValue)'))
+    with pytest.raises(common.SetupError) as exc:
+        common.command(['az'])
+    assert 'Aa1SecretValue' not in str(exc.value)
 
     def timeout(*args, **kwargs):
         raise subprocess.TimeoutExpired(marker, 1, output=marker)

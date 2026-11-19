@@ -29,7 +29,10 @@ def command(args, *, input=None, timeout=1800, label='CLI operation'):
     if result.returncode:
         # Retain only an Azure symbolic error code, never arbitrary error content.
         match = re.search(r'\(([A-Za-z][A-Za-z0-9]+)\)', result.stderr)
-        code = f' ({match[1]})' if match else ''
+        known_codes = {'SubscriptionNotFound', 'AuthorizationFailed', 'AuthenticationFailed',
+                       'ResourceGroupNotFound', 'MissingSubscriptionRegistration', 'BadRequest',
+                       'RequestDisallowedByPolicy', 'RequestDisallowedByAzure', 'StorageAccountAlreadyTaken'}
+        code = f' ({match[1]})' if match and match[1] in known_codes else ''
         raise SetupError(f'{label} failed{code}; no secret-bearing CLI output printed')
     return result.stdout
 

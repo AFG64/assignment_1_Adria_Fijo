@@ -135,6 +135,32 @@ Only after the user's explicit confirmation may a change raise maximum_version
 and record before_evidence_confirmed true alongside the new migration. The file
 is an operational release gate, not an authored evidence/AI/ADR record.
 
+After an authorized, successful 001 application release:
+
+```sh
+python scripts/azure_baseline.py plan      # offline description only
+python scripts/azure_baseline.py populate  # explicitly creates synthetic records
+python scripts/azure_baseline.py inspect   # reads IDs, item values and exact bill bytes
+```
+
+Population is not part of CI/CD. It checks the reviewed Azure target, warms both
+own-health endpoints, then reads existing synthetic records before each optional
+write. It never automatically retries a POST, imports private data or deletes a
+record. Repeating after an uncertain write first reads the current state; duplicate
+markers are an error. Inspection returns stable IDs, visited status and the bill
+hash for technical verification; the user still captures/selects their own
+before/after evidence. An incomplete or changed baseline fails explicitly.
+
+`scripts/check_baseline_local.py` exercises this exact population/inspection flow
+against local real HTTP/SQL and cleans only its UUID-named synthetic records.
+`scripts/check_azure_roles.py` creates disposable databases inside the local SQL
+container with contained users and precisely the proposed Azure roles. It verifies
+first/repeat migrations, health writes, app locks, repeat seeding, absence of
+db_owner and denial of peer-database access. Test databases are removed and the
+instance's original contained-authentication/advanced-options settings restored.
+Both checks run in CI; neither contacts Azure. Local compatibility does not replace
+verifying the real Azure service users during initial deployment.
+
 The user writes the hosting/migration/pipeline ADRs and AI usage records, and
 collects screenshots/run links/logs. Passing local tests does not establish cloud
 deployment, access, successful OIDC, public GHCR pulls or evidence completion.

@@ -139,4 +139,4 @@ resource readers 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for obj
 output clientId string = identity.properties.clientId
 output environmentId string = environment.id
 output sqlHost string = sql.properties.fullyQualifiedDomainName
-output uiOrigin string = storage.properties.primaryEndpoints.web
+output storageAccount string = storage.name

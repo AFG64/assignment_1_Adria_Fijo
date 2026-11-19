@@ -75,9 +75,9 @@ def create_users(plan, passwords, admin_password, client_ip):
     from service_runtime.database import connect
     firewall = 'temporary-bootstrap'
     args = ['--resource-group', plan['group'], '--server', plan['prefix'] + '-sql', '--name', firewall]
-    az('sql', 'server', 'firewall-rule', 'create', *args, '--start-ip-address', client_ip,
-       '--end-ip-address', client_ip, label='Temporary SQL firewall creation')
     try:
+        az('sql', 'server', 'firewall-rule', 'create', *args, '--start-ip-address', client_ip,
+           '--end-ip-address', client_ip, label='Temporary SQL firewall creation')
         for service in SERVICES:
             user = 'picky_' + service
             with closing(connect(database_url(plan, service, admin_password, admin=True), attempts=12)) as connection:
@@ -158,8 +158,10 @@ def apply(plan, client_ip):
         command(['gh', 'secret', 'set', name, '--repo', plan['repository']], input=value, label='GitHub secret configuration')
     for name, value in {'PREFIX': plan['prefix'], 'RESOURCE_GROUP': plan['group'], 'UI_STORAGE': plan['storage']}.items():
         command(['gh', 'variable', 'set', name, '--repo', plan['repository'], '--body', value], label='GitHub variable configuration')
+    storage = az('storage', 'account', 'show', '--resource-group', plan['group'], '--name', plan['storage'],
+                 label='Enabled website endpoint discovery')
     print('Initial setup finished. Applications still require the approved main deployment pipeline.', flush=True)
-    print('Public website origin: ' + outputs['uiOrigin'].rstrip('/'))
+    print('Public website origin: ' + storage['primaryEndpoints']['web'].rstrip('/'))
 
 
 def main():
