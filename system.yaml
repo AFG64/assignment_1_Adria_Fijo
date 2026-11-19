@@ -4,8 +4,8 @@
 # Guide-derived naming from authenticated IE identity; resources planned, not provisioned.
 student: afijo.ieu2024
 prefix: afijo-ieu2024
-# No cloud deployment exists yet; reserved HTTPS placeholder satisfies the official format.
-public_url: https://not-deployed.invalid
+# Storage website endpoint discovered after initial setup; application release pending.
+public_url: https://afijoieu2024ui.z28.web.core.windows.net
 ui:
   path: ui
   storage_account: afijoieu2024ui

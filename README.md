@@ -238,7 +238,9 @@ conflicting IDs roll back that domain. Bill files must exist inside the copied
 No migration file is changed by transfer. Cloud baseline uses synthetic data only.
 
 Azure readiness and the proposed resource inventory are in
-[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). No Azure deployment exists yet.
+[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). Initial resources were
+provisioned on 20 November; application release status is recorded by main’s
+CI/CD runs and each service’s health version.
 
 ### Service coordination (milestone 5)
 
@@ -266,18 +268,19 @@ No Azure application deployment is claimed by the presence of these files.
 
 The supplied updated course guide supersedes the earlier shared-class Azure plan.
 Individual Assignment 2 uses your active Azure for Students subscription and a
-new personal resource group rg-afijo2024. The UI goes to a Storage static website,
+personal resource group rg-afijo-ieu2024. The UI goes to a Storage static website,
 the pipeline uses an OIDC managed identity, SQL uses the serverless free offer,
 and the Container Apps Log Analytics workspace is permitted. Read
 [requirement updates](docs/assignment-2/REQUIREMENT_UPDATES.md) and the updated
 [Azure readiness plan](docs/assignment-2/AZURE_READINESS.md) before setup.
 
-The official system.schema.json is copied unchanged and validated in CI. The
-reserved public_url https://not-deployed.invalid explicitly means no live cloud
-URL exists yet; replace it with the discovered Storage web endpoint at setup.
-Local Docker/CORS settings remain unchanged. No Azure resources, roles, cloud
-configuration or deployment were created by this repository correction. Actual
-initial setup commands will be documented here when authorized and executed.
+The official system.schema.json is copied unchanged and validated in CI.
+The Storage website endpoint discovered during setup is
+[the Picky UI](https://afijoieu2024ui.z28.web.core.windows.net). system.yaml uses
+that address; each main release generates the HTTPS API configuration and CORS.
+Initial resource creation, scoped roles and secret setup are documented in
+[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The main workflow's
+successful health/version checks determine whether an application release is live.
 
 ### Static collection and dining UI (milestones 6–7)
 

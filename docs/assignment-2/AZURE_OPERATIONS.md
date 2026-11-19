@@ -1,7 +1,8 @@
 # Azure setup and operation
 
-This is technical documentation, not a personal ADR or report. No resources are
-claimed deployed. `infra/azure/plan.json` is the nonsecret proposed target,
+This is technical documentation, not a personal ADR or report. Initial resources
+were provisioned on 20 November; see AZURE_READINESS.md for the verified inventory.
+`infra/azure/plan.json` is the nonsecret deployment target,
 derived from the authenticated IE username and verified GitHub IDs. It proposes
 France Central for both app and SQL, within the subscription's current allowlist.
 Name availability and actual free-offer acceptance must pass before use.
@@ -172,3 +173,26 @@ and [Container Apps probes](https://learn.microsoft.com/en-us/azure/container-ap
 Pipeline references:
 [reusable workflows](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows),
 [GHCR publishing and visibility](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+
+## Initial setup execution — 20 November
+
+The user requested completion of milestone 7 and Azure after reviewing the plan.
+Registered the five providers, then preflight verified the Students subscription,
+allowed France Central region, real repository/owner IDs, professor identities
+and resource-name availability. Ran the documented apply command using the
+current personal public IPv4 and three distinct generated credentials retained
+in macOS Keychain (details in AZURE_READINESS.md, no values).
+
+The first Bicep operation partially succeeded but failed one federated credential
+with ConcurrentFederatedIdentityCredentialsWritesForSingleManagedIdentity. Added
+@batchSize(1) to serialize this resource loop, compiled and resumed the same
+owned group/resources/passwords. The second deployment succeeded. This is a real
+initial ARM setup failure, not a failed GitHub CI run. See Microsoft's
+[concurrent credential restriction](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-considerations).
+
+Both free-offer databases reported the required SKU/limits. Contained user
+verification passed, the temporary SQL rule was removed in finally, and the
+repository secret/variable names were verified after configuration. The discovered
+website endpoint was committed to system.yaml before the first application PR
+merge. Subsequent application/image/environment/UI changes use the main pipeline;
+do not rerun bootstrap as the release procedure.

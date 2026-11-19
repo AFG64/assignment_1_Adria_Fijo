@@ -92,6 +92,7 @@ var subjects = [
   'repo:${repository}:ref:refs/heads/main'
   'repo:${split(repository, '/')[0]}@${ownerId}/${split(repository, '/')[1]}@${repositoryId}:ref:refs/heads/main'
 ]
+@batchSize(1)
 resource federation 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2023-01-31' = [for (subject, i) in subjects: {
   parent: identity
   name: 'github-main-${i}'
