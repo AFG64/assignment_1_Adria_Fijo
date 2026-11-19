@@ -256,6 +256,13 @@ has been added or applied.
 
 ### Updated deployment contract (19 November)
 
+Initial setup is defined in [infra/azure/main.bicep](infra/azure/main.bicep), with
+a nonsecret proposed plan and guarded CLI runner. See the exact setup steps,
+credential handling and migration checkpoint in
+[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The default command
+`python scripts/azure_setup.py plan` only prints the proposed resources.
+No Azure application deployment is claimed by the presence of these files.
+
 The supplied updated course guide supersedes the earlier shared-class Azure plan.
 Individual Assignment 2 uses your active Azure for Students subscription and a
 new personal resource group rg-afijo2024. The UI goes to a Storage static website,

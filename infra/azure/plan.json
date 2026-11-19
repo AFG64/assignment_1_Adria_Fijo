@@ -1,0 +1,15 @@
+{
+  "subscription_id": "fba03120-1f24-4f01-9d1f-038a4b705cad",
+  "tenant_id": "4a39c578-6df0-42b9-a7e0-e9eac6d91816",
+  "student": "afijo.ieu2024",
+  "prefix": "afijo-ieu2024",
+  "location": "francecentral",
+  "sql_location": "francecentral",
+  "repository": "AFG64/assignment_1_Adria_Fijo",
+  "repository_id": 1396350075,
+  "owner_id": 80916738,
+  "readers": [
+    "amartini@faculty.ie.edu",
+    "bserra@faculty.ie.edu"
+  ]
+}

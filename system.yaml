@@ -1,19 +1,19 @@
 # yaml-language-server: $schema=./system.schema.json
 # Restaurant/dining APIs coordinate visits and deletion over bounded HTTP.
 # Official Blackboard schema supplied 19 November 2026, copied unchanged.
-# Confirmed naming; Azure resources below are planned, not provisioned.
-student: afijo2024
-prefix: afijo2024
+# Guide-derived naming from authenticated IE identity; resources planned, not provisioned.
+student: afijo.ieu2024
+prefix: afijo-ieu2024
 # No cloud deployment exists yet; reserved HTTPS placeholder satisfies the official format.
 public_url: https://not-deployed.invalid
 ui:
   path: ui
-  storage_account: afijo2024ui
+  storage_account: afijoieu2024ui
   calls: [restaurants, dining]
 azure:
-  resource_group: rg-afijo2024
-  container_apps_environment: afijo2024-env
-  sql_server: afijo2024-sql
+  resource_group: rg-afijo-ieu2024
+  container_apps_environment: afijo-ieu2024-env
+  sql_server: afijo-ieu2024-sql
   registry: ghcr.io/afg64
 services:
   restaurants:
@@ -39,8 +39,8 @@ services:
         timeout_s: 2
         on_failure: Saved entry is revoked first. Return 503 cleanup_pending if dining cleanup is unconfirmed; retry the same idempotent DELETE until 204. Catalog retained.
     azure:
-      container_app: afijo2024-restaurants
-      sql_database: afijo2024-restaurants-db
+      container_app: afijo-ieu2024-restaurants
+      sql_database: afijo-ieu2024-restaurants-db
   dining:
     description: Visits, ordered items and durable bill contents; saved IDs are external references.
     path: services/dining
@@ -62,5 +62,5 @@ services:
         timeout_s: 2
         on_failure: Return 503 peer_unavailable with no visit write, or visit_outcome_uncertain if own commit cannot be confirmed. Status may already be visited. Never blindly retry POST; check history. Own history and health do not call the peer.
     azure:
-      container_app: afijo2024-dining
-      sql_database: afijo2024-dining-db
+      container_app: afijo-ieu2024-dining
+      sql_database: afijo-ieu2024-dining-db

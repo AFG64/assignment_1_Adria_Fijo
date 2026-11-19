@@ -4,26 +4,53 @@ The user supplied the updated course deployment guide and announcements on
 19 November. **Individual Assignment 2 uses the student's own Azure for Students
 subscription.** The shared IE subscription/class-group plan is superseded; the
 separate group-project instructions in the guide do not apply to this repository.
-Confirmed username/prefix: afijo2024. Class 3A is not the deployment scope.
-No cloud resource has been created or verified. `az account list` currently shows
-no signed-in accounts. Authenticate locally with `az login`, check subscription
-state and choose the active Azure for Students subscription. Never put account
-passwords, verification codes or tokens in chat or Git.
+
+## Verified subscription and access
+
+Personal Azure for Students activation completed on 19 November 2026 after the
+user completed Microsoft sign-in, academic verification and profile/agreements
+directly in Microsoft's browser. No credentials, codes, date of birth or private
+contact details are recorded here.
+
+- Subscription: Azure for Students, `fba03120-1f24-4f01-9d1f-038a4b705cad`.
+- ARM state: Enabled; quota ID: `AzureForStudents_2018-01-01`; spending limit: On.
+- Signed-in user has Owner at this subscription. CLI default is now this
+  subscription, rather than the unrelated enterprise IE Workspaces subscription.
+- Education portal shows $100 out of $100 available, November costs $0.00 and
+  credit expiry 19 November 2027. These are observations at activation time.
+- Live policy `sys.regionrestriction` allows `denmarkeast`, `francecentral`,
+  `spaincentral`, `austriaeast`, `belgiumcentral`. The new local plan proposes francecentral for app and SQL; it is not deployed.
+- Resource-group and resource inventories returned empty. Microsoft.App,
+  Microsoft.OperationalInsights, Microsoft.Sql, Microsoft.Storage and
+  Microsoft.ManagedIdentity are all NotRegistered. None was registered by us.
+- Storage name availability and SQL GP_S_Gen5_1 availability checks currently
+  fail with SubscriptionNotFound for the new subscription, although ARM account,
+  policy, role and resource-list reads succeed. Do not claim names/SKUs verified.
+  Repeat these checks during setup readiness; do not fall back to IE Workspaces.
+
+Authenticated IE username is `afijo.ieu2024`; the guide derives prefix
+`afijo-ieu2024` by replacing the dot with a hyphen. Proposed inventory below now
+uses that derivation. `system.yaml` and `infra/azure/plan.json` now agree on the corrected proposed
+names; they still describe an undeployed target. Class 3A is not the deployment scope. Proposed names and a region
+remain subject to the final concrete setup plan and authorization.
+
+No application resources, providers, role grants, GitHub settings or deployments
+were changed. Never put passwords, verification codes or tokens in chat or Git.
 
 ## Proposed inventory (not provisioned)
 
 | Resource | Proposed name | Updated required configuration |
 |---|---|---|
-| Resource group | rg-afijo2024 | Create in the student's verified active subscription, after authorization |
-| Storage account/static website | afijo2024ui | StorageV2, Standard_LRS, index.html; name availability unverified |
-| Pipeline managed identity | afijo2024-github | OIDC; Contributor on this resource group only |
-| Container Apps environment | afijo2024-env | Consumption workloads |
-| Log Analytics workspace | Name to be discovered/confirmed during environment setup | Keep the environment's log workspace; allowed by new announcement |
-| Restaurant Container App | afijo2024-restaurants | Public HTTPS; min 0/max 1 replica |
-| Dining Container App | afijo2024-dining | Public HTTPS; min 0/max 1 replica |
-| SQL logical server | afijo2024-sql | Two owned databases, encrypted connections, contained users |
-| Restaurant SQL database | afijo2024-restaurants-db | GP Gen5 serverless free offer, 0.5–1 vCore, local backups |
-| Dining SQL database | afijo2024-dining-db | Same free-offer settings |
+| Resource group | rg-afijo-ieu2024 | Create in the student's verified active subscription, after authorization |
+| Storage account/static website | afijoieu2024ui | StorageV2, Standard_LRS, index.html; name availability unverified |
+| Pipeline managed identity | afijo-ieu2024-github | OIDC; Contributor on this resource group only |
+| Container Apps environment | afijo-ieu2024-env | Consumption workloads |
+| Log Analytics workspace | afijo-ieu2024-logs | Keep the environment's log workspace; allowed by new announcement |
+| Restaurant Container App | afijo-ieu2024-restaurants | Public HTTPS; min 0/max 1 replica |
+| Dining Container App | afijo-ieu2024-dining | Public HTTPS; min 0/max 1 replica |
+| SQL logical server | afijo-ieu2024-sql | Two owned databases, encrypted connections, contained users |
+| Restaurant SQL database | afijo-ieu2024-restaurants-db | GP Gen5 serverless free offer, 0.5–1 vCore, local backups |
+| Dining SQL database | afijo-ieu2024-dining-db | Same free-offer settings |
 
 Get the subscription's allowed regions from its policy assignment before choosing
 a region. Verify actual free-offer availability. The guide permits SQL in another
@@ -31,7 +58,8 @@ allowed region if necessary. For the free offer, use `--use-free-limit true` and
 `--free-limit-exhaustion-behavior AutoPause`; the guide fixes auto-pause at 60 minutes
 and size at 32 GB, so do not pass `--auto-pause-delay` or `--max-size`. These
 supersede the earlier shared-subscription 2 GB/shortest-delay plan. Live SKU/region
-support must still be checked at setup; no Azure bill or credit balance checked.
+support must still be checked at setup. Credit balance was observed in the
+Education portal at activation; no detailed billing analysis was performed.
 
 Register Microsoft.App, Microsoft.OperationalInsights, Microsoft.Sql,
 Microsoft.Storage and Microsoft.ManagedIdentity in the selected personal
@@ -75,9 +103,10 @@ assignment evidence; retain real failure/fix runs if they occur.
 
 ## Remaining access and approval steps
 
-1. User signs in locally; select the active personal Azure for Students subscription.
-2. Read-only verification of active state, allowed regions, providers, existing
-   own-prefix resources, resource-name availability and relevant permissions.
+1. Completed: activate, verify and select personal Azure for Students.
+2. Partly completed: active state, allowed regions, empty inventory, provider
+   registration state and Owner role verified. Repeat resource-name/SKU checks
+   that currently fail with SubscriptionNotFound; free-offer support is unverified.
 3. Implement/validate the exact setup/CD configuration and present the concrete
    resource plan for authorization before creating resources, changing roles or deploying.
 4. Document actual setup commands in the technical README as they are run,
@@ -94,3 +123,12 @@ Sources: supplied updated Azure deployment guide, searchable copy in
 [AZURE_DEPLOYMENT_GUIDE.txt](AZURE_DEPLOYMENT_GUIDE.txt), and the 18/19 November
 course announcements supplied by the user. The original BRIEF.txt is historical;
 see [requirement updates](REQUIREMENT_UPDATES.md) for the changes applied here.
+
+## Local setup implementation
+
+The guarded runner `scripts/azure_setup.py` and `infra/azure/main.bicep` implement
+the proposed initial setup. See AZURE_OPERATIONS.md for exact effects, secret
+handling, scoped roles and recovery. Their presence does not authorize execution.
+Setup user and pipeline identity receive Blob Data Contributor only on the UI
+storage account; this permits keyless website setup/upload. No shared storage
+keys are enabled. Application deployment remains pipeline-only.
