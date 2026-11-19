@@ -1,4 +1,4 @@
-# Static collection UI — milestone 6
+# Static UI — collection and dining workflows
 
 The same green/neutral Picky layout now runs as plain HTML, CSS and JavaScript in
 ui/, served by stock nginx locally. No page rendering from the Flask monolith is
@@ -7,10 +7,13 @@ needed. The original Assignment 1 templates/static assets remain untouched.
 Implemented routes are #/saved, #/catalog (five filters in the URL), and
 #/restaurants/<id>. Hash routing supports refresh and Back/Forward on static
 hosting. Catalog/saved lists, new restaurant creation, saving an existing catalog
-entry with status, confirmed removal and read-only restaurant details work with
-the restaurant API. Details fetch read-only visit history from dining; history
-failure does not hide restaurant facts. Visit/item/bill entry, downloads, personal
-saved-detail editing and location editing are milestone 7, not claimed complete.
+entry with status, confirmed removal, restaurant details, personal rating/notes/
+return-preference editing and location editing work with the restaurant API.
+Details load dining history and support visit entry, ordered items and PNG/JPEG/
+PDF bill upload/download. History failure does not hide restaurant facts.
+Each visit submission crosses the server-side seam and marks the place visited.
+Dates use the Europe/Madrid calendar in both browser and API, including the
+midnight boundary when Azure hosts still use UTC.
 
 ## Public configuration
 
@@ -67,3 +70,42 @@ was checked with the original nginx UI still running.
 are checked locally. This is not a screen-reader or cross-browser certification.
 Browser QA artifacts stay outside user-owned assignment evidence and are not
 committed. Screenshots/logs for the report remain the user's task.
+
+## Dining and edit forms (milestone 7)
+
+Native details/form controls keep related actions next to their records. Every
+field has a unique associated label; number/date/file constraints provide local
+feedback, with the API retaining final validation. Empty personal values clear
+to null, including the tri-state return preference. Inputs remain after request
+errors; the form fieldset disables during a submission. Cancel/Escape closes the
+composer and returns focus to its summary. Successful saves reload the current
+restaurant only if the route generation still matches; a late response does not
+replace another route.
+
+Visits, items and bill uploads are non-idempotent: no automatic retries. Uncertain
+network/server failures explicitly ask the user to refresh history and inspect
+current visits/items/bills before resubmitting. A Refresh visit history button
+provides that read-only recovery. File uploads use browser-generated multipart
+boundaries, with no JSON Content-Type override, at most 5 MiB. The API checks
+file signatures; a rejected file can be replaced without losing the form. Bill
+downloads fetch scoped attachments as blobs, handle API failures in place, use
+the returned MIME type for the download extension and revoke temporary URLs.
+
+Location editing supports OpenStreetMap address lookup and explicit manual
+coordinates. Lookup failure preserves the address and explains the manual
+option. Coordinates are required only in manual mode. Existing coordinates link
+to OpenStreetMap without embedding a map or loading tiles on every detail view.
+The external lookup disclosure remains beside the form.
+
+Milestone 7 browser verification (20 November): real local APIs/SQL, personal
+false/null values and clearing, manual location and OpenStreetMap link, failed
+address lookup with retained input/manual recovery, cross-service visit creation
+and status, current Madrid date at the UTC boundary, ordered item/zero-quantity
+validation, invalid-signature replacement, client rejection over 5 MiB, real PDF
+upload and byte-exact browser download. Dining-down submission/download and
+restaurant-peer-down submission show recoverable errors without losing input or
+creating a visit after failed validation. 320px form layout and 200% CSS zoom
+checked for overflow; mobile/desktop QA screenshots inspected. Escape restores
+summary focus. This is Chromium verification, not native browser zoom, screen
+reader or cross-browser certification. All unique local test rows are cleaned
+after verification; test screenshots are not the user's assignment evidence.

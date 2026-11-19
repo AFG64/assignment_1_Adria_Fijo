@@ -135,4 +135,15 @@ button:disabled { opacity: .6; cursor: wait; }
 #cleanup button { margin-block-end: 12px; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-block-start: 18px; }
 .detail-section a { color: #315840; }
+.visit-composer { margin-block: 10px; padding-block: 4px; }
+.visit-composer[open] { padding-block: 10px; }
+.visit-composer fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.visit-list h4 { margin: 0 0 12px; font-size: 1rem; }
+.visit-list p, .visit-list li, .bill-list button { overflow-wrap: anywhere; }
+.bill-list { padding-left: 0; list-style: none; }
+.bill-list li { margin-block: 10px; }
+.visit-composer input[type=file] { max-width: 100%; font-size: 1rem; }
+.visit-composer .field-hint { margin-block: 10px 16px; }
+.personal-notes, .detail-section, .visit-composer { overflow-wrap: anywhere; }
+#content > a { display: inline-block; margin-block: 8px; color: #315840; }
 @media (max-width: 560px) { .detail-heading { flex-wrap: wrap; } }

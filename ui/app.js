@@ -14,7 +14,7 @@
     $('#notice').hidden = !message;
   }
 
-  async function api(domain, path, {method = 'GET', body} = {}) {
+  async function api(domain, path, {method = 'GET', body, download = false, uncertain} = {}) {
     const config = window.PICKY_CONFIG || {};
     const base = config[domain];
     try {
@@ -22,19 +22,22 @@
       if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || (location.protocol === 'https:' && url.protocol !== 'https:')) throw new Error();
     } catch { throw new Error('Picky is not ready to connect. Please check with the site owner.'); }
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const multipart = body instanceof FormData;
+    const timeout = setTimeout(() => controller.abort(), multipart || download ? 45000 : 15000);
     try {
       const response = await fetch(base.replace(/\/$/, '') + path, {
-        method, signal: controller.signal, headers: body === undefined ? {} : {'Content-Type': 'application/json'},
-        ...(body === undefined ? {} : {body: JSON.stringify(body)})
+        method, signal: controller.signal, headers: body === undefined || multipart ? {} : {'Content-Type': 'application/json'},
+        ...(body === undefined ? {} : {body: multipart ? body : JSON.stringify(body)})
       });
       if (response.status === 204) return null;
+      if (response.ok && download) return await response.blob();
       let data;
       try { data = await response.json(); } catch { throw new TypeError('Unreadable API response'); }
       if (!response.ok) {
         const error = new Error(response.status === 404 && domain === 'restaurants' ? 'This restaurant was not found. Return to the catalog to choose another.' : data.message || 'This request could not be completed.');
         error.status = response.status;
         error.code = data.error;
+        if (uncertain && response.status >= 500) error.message += ' ' + uncertain;
         throw error;
       }
       return data;
@@ -44,13 +47,15 @@
           ? 'The service is starting up or unavailable. Try loading again in a moment.'
           : method === 'DELETE'
             ? 'Removal could not be confirmed. Use Retry cleanup to finish safely.'
-            : 'The result could not be confirmed. Check your saved list before trying again.');
+            : 'The result could not be confirmed. ' + (uncertain || 'Check your saved list before trying again.'));
       }
       throw error;
     } finally { clearTimeout(timeout); }
   }
 
   function showError(node, error) {
+    const details = node.closest('details');
+    if (details) details.open = true;
     node.textContent = error.message;
     node.hidden = false;
     node.focus();
@@ -165,6 +170,144 @@
     }
   }
 
+  function composer(label, fields, action, submit) {
+    const details = document.createElement('details'); details.className = 'visit-composer';
+    const summary = document.createElement('summary'); summary.textContent = label;
+    const form = document.createElement('form');
+    form.innerHTML = `<fieldset>${fields}<p class="message error" role="alert" tabindex="-1" hidden></p><div class="form-actions"><button type="submit">${esc(action)}</button><button type="button" class="secondary-button">Cancel</button></div></fieldset>`;
+    const fieldset = form.querySelector('fieldset'), error = form.querySelector('[role=alert]');
+    form.querySelector('[type=button]').onclick = () => { details.open = false; summary.focus(); };
+    form.addEventListener('keydown', event => { if (event.key === 'Escape' && !busy) { details.open = false; summary.focus(); } });
+    form.onsubmit = event => {
+      event.preventDefault(); const data = new FormData(form); error.hidden = true;
+      mutation(form.querySelector('[type=submit]'), async () => {
+        fieldset.disabled = true;
+        try { await submit(data, form); } finally { fieldset.disabled = false; }
+      }, error);
+    };
+    details.append(summary, form); return details;
+  }
+
+  function field(id, name, label, attributes = '', value = '') {
+    return `<div class="field"><label for="${id}">${label}</label><input id="${id}" name="${name}" ${attributes} value="${esc(value)}"></div>`;
+  }
+
+  const optionalNumber = value => value === '' ? null : Number(value);
+  async function refreshDetail(token, message) {
+    notice(message);
+    if (token === generation) await render();
+  }
+
+  function savedEditor(row, token) {
+    const saved = row.saved, id = saved.id;
+    const form = composer('Edit your details',
+      field(`personal-rating-${id}`, 'rating', 'Your overall rating', 'type="number" min="0" max="5" step="0.1"', saved.rating ?? '') +
+      `<div class="field"><label for="personal-notes-${id}">Your notes</label><textarea id="personal-notes-${id}" name="notes" maxlength="2000" rows="3">${esc(saved.notes)}</textarea></div><div class="field"><label for="return-${id}">Would you go back?</label><select id="return-${id}" name="would_go_back"><option value="">Not set</option><option value="true">Yes</option><option value="false">No</option></select></div>`,
+      'Save your details', async data => {
+        await api('restaurants', `/saved-restaurants/${id}`, {method: 'PATCH', body: {
+          rating: optionalNumber(data.get('rating')), notes: data.get('notes') || null,
+          would_go_back: data.get('would_go_back') === '' ? null : data.get('would_go_back') === 'true'
+        }, uncertain: 'Reload this restaurant to check your details before saving again.'});
+        await refreshDetail(token, 'Your details saved.');
+      });
+    form.querySelector('select').value = saved.would_go_back == null ? '' : String(Boolean(saved.would_go_back));
+    return form;
+  }
+
+  function locationEditor(row, token) {
+    const id = row.id;
+    const form = composer('Edit location',
+      field(`location-address-${id}`, 'address', 'Address (required)', 'required maxlength="300"', row.address ?? '') +
+      `<div class="field"><label for="location-mode-${id}">How to find the location</label><select id="location-mode-${id}" name="mode"><option value="search">Look up address</option><option value="manual">Enter coordinates</option></select><small class="field-hint">Address lookup sends this address to OpenStreetMap. If lookup fails, enter coordinates below.</small></div><div class="field-grid" data-coordinates>` +
+      field(`latitude-${id}`, 'latitude', 'Latitude (required)', 'type="number" min="-90" max="90" step="any" required', row.latitude ?? '') +
+      field(`longitude-${id}`, 'longitude', 'Longitude (required)', 'type="number" min="-180" max="180" step="any" required', row.longitude ?? '') + '</div>',
+      'Save location', async data => {
+        const body = {mode: data.get('mode'), address: data.get('address')};
+        if (body.mode === 'manual') Object.assign(body, {latitude: Number(data.get('latitude')), longitude: Number(data.get('longitude'))});
+        try {
+          await api('restaurants', `/restaurants/${id}/location`, {method: 'PUT', body,
+            uncertain: 'Reload this restaurant to check its location before saving again.'});
+        } catch (error) {
+          if (body.mode === 'search' && error.status === 400) error.message = 'Address lookup could not find this location or is unavailable. Check the address or select Enter coordinates.';
+          throw error;
+        }
+        await refreshDetail(token, 'Location saved.');
+      });
+    const mode = form.querySelector('select'), coordinates = form.querySelector('[data-coordinates]');
+    mode.value = row.latitude == null || row.longitude == null ? 'search' : 'manual';
+    const toggle = () => { coordinates.hidden = mode.value !== 'manual'; coordinates.querySelectorAll('input').forEach(input => { input.disabled = coordinates.hidden; }); };
+    mode.onchange = toggle; toggle(); return form;
+  }
+
+  function visitComposer(savedId, token) {
+    const parts = new Intl.DateTimeFormat('en', {timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit'}).formatToParts(new Date());
+    const date = ['year', 'month', 'day'].map(key => parts.find(part => part.type === key).value).join('-');
+    return composer('Record a visit',
+      field(`visit-date-${savedId}`, 'visit_date', 'Visit date (required)', `type="date" required max="${date}"`, date) + '<p class="field-hint">Dates use Madrid time.</p>' +
+      field(`visit-rating-${savedId}`, 'rating', 'Visit rating', 'type="number" min="0" max="5" step="0.1"') +
+      `<div class="field"><label for="visit-notes-${savedId}">Visit notes</label><textarea id="visit-notes-${savedId}" name="notes" maxlength="2000" rows="3"></textarea></div><p class="field-hint">Recording a visit also marks this restaurant as visited.</p>`,
+      'Save visit', async data => {
+        await api('dining', `/saved-restaurants/${savedId}/visits`, {method: 'POST', body: {
+          visit_date: data.get('visit_date'), rating: optionalNumber(data.get('rating')), notes: data.get('notes') || null
+        }, uncertain: 'Reload visit history before trying again to avoid a duplicate visit.'});
+        await refreshDetail(token, 'Visit saved and restaurant marked visited.');
+      });
+  }
+
+  function visitEntry(visit, savedId, token) {
+    const li = document.createElement('li');
+    const heading = document.createElement('h4'); heading.textContent = `${visit.visit_date}${visit.rating == null ? '' : ` · Rating ${visit.rating}/5`}`; li.append(heading);
+    if (visit.notes) { const notes = document.createElement('p'); notes.className = 'visit-notes'; notes.textContent = visit.notes; li.append(notes); }
+    const path = `/saved-restaurants/${savedId}/visits/${visit.id}`;
+    const items = document.createElement('ul'); items.className = 'item-list';
+    for (const item of visit.items) {
+      const entry = document.createElement('li'); entry.textContent = `${item.item_name} × ${item.quantity}${item.unit_price == null ? '' : ` · Unit price ${item.unit_price.toFixed(2)}`}`; items.append(entry);
+    }
+    if (visit.items.length) li.append(items);
+    li.append(composer('Add an ordered item',
+      field(`item-name-${visit.id}`, 'item_name', 'Item name (required)', 'required maxlength="300"') +
+      '<div class="field-grid">' + field(`quantity-${visit.id}`, 'quantity', 'Quantity (required)', 'type="number" min="1" max="2147483647" step="1" required', 1) +
+      field(`unit-price-${visit.id}`, 'unit_price', 'Unit price', 'type="number" min="0" max="9999999999.99" step="0.01"') + '</div>',
+      'Save item', async data => {
+        await api('dining', path + '/items', {method: 'POST', body: {
+          item_name: data.get('item_name'), quantity: Number(data.get('quantity')), unit_price: optionalNumber(data.get('unit_price'))
+        }, uncertain: 'Reload visit history to check its items before trying again.'});
+        await refreshDetail(token, 'Ordered item saved.');
+      }));
+    const billList = document.createElement('ul'); billList.className = 'bill-list';
+    for (const bill of visit.bills) {
+      const entry = document.createElement('li'), button = document.createElement('button'), error = document.createElement('p');
+      button.type = 'button'; button.className = 'secondary-button'; button.textContent = `Download bill ${bill.id}`;
+      error.className = 'message error'; error.hidden = true; error.tabIndex = -1; error.setAttribute('role', 'alert');
+      button.onclick = () => mutation(button, async () => {
+        error.hidden = true;
+        const blob = await api('dining', path + '/bills/' + bill.id, {download: true});
+        const extension = {'application/pdf': 'pdf', 'image/png': 'png', 'image/jpeg': 'jpg'}[blob.type];
+        if (!extension || blob.size > 5242880) throw new Error('This bill could not be downloaded. Reload visit history and try again.');
+        const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = `bill-${bill.id}.${extension}`;
+        document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        notice('Bill download started.');
+      }, error);
+      entry.append(button, error); billList.append(entry);
+    }
+    if (visit.bills.length) li.append(billList);
+    li.append(composer('Upload a bill',
+      field(`bill-file-${visit.id}`, 'bill_file', 'Bill file (required)', 'type="file" accept="image/png,image/jpeg,application/pdf" required') +
+      '<p class="field-hint">PNG, JPEG or PDF, up to 5 MiB. Your file is stored with this visit.</p>', 'Upload bill', async data => {
+        const file = data.get('bill_file');
+        if (!file.size || file.size > 5242880) throw new Error('Choose a nonempty PNG, JPEG or PDF of at most 5 MiB.');
+        try {
+          await api('dining', path + '/bills', {method: 'POST', body: data,
+            uncertain: 'Reload visit history to check its bills before uploading again.'});
+        } catch (error) {
+          if (error.status === 400) error.message = 'This file was not accepted. Choose a valid PNG, JPEG or PDF bill.';
+          throw error;
+        }
+        await refreshDetail(token, 'Bill uploaded.');
+      }));
+    return li;
+  }
+
   async function renderDetail(id, token) {
     const row = await api('restaurants', `/restaurants/${id}`);
     if (token !== generation) return;
@@ -182,13 +325,23 @@
     }
     if (row.menu) { const p = document.createElement('p'); p.className = 'detail-section'; p.textContent = `Menu: ${row.menu}`; content.append(p); }
     if (row.saved?.notes) { const p = document.createElement('p'); p.className = 'detail-section personal-notes'; p.textContent = row.saved.notes; content.append(p); }
+    content.append(locationEditor(row, token));
+    if (row.latitude != null && row.longitude != null) {
+      const map = document.createElement('a'); map.href = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(row.latitude)}&mlon=${encodeURIComponent(row.longitude)}#map=16/${encodeURIComponent(row.latitude)}/${encodeURIComponent(row.longitude)}`;
+      map.target = '_blank'; map.rel = 'noopener noreferrer'; map.textContent = `View location on OpenStreetMap (${row.latitude}, ${row.longitude})`; content.append(map);
+    }
     if (!row.saved) { content.append(saveChoice(row)); return; }
+    content.append(savedEditor(row, token));
     const history = document.createElement('section'); history.className = 'detail-section'; history.innerHTML = '<h3>Visit history</h3><p>Loading visits…</p>'; history.setAttribute('aria-busy', 'true'); content.append(history);
     api('dining', `/saved-restaurants/${row.saved.id}/visits`).then(visits => {
       if (token !== generation) return;
       history.innerHTML = '<h3>Visit history</h3>';
+      const refresh = document.createElement('button'); refresh.type = 'button'; refresh.className = 'secondary-button'; refresh.textContent = 'Refresh visit history'; refresh.onclick = () => render(); history.append(refresh);
+      history.append(visitComposer(row.saved.id, token));
       if (!visits.length) { const p = document.createElement('p'); p.textContent = 'No visits recorded yet.'; history.append(p); }
-      for (const visit of visits) { const p = document.createElement('p'); p.textContent = `${visit.visit_date}${visit.rating == null ? '' : ` · Rating ${visit.rating}/5`}${visit.notes ? ` · ${visit.notes}` : ''}`; history.append(p); }
+      const list = document.createElement('ul'); list.className = 'visit-list';
+      for (const visit of visits) list.append(visitEntry(visit, row.saved.id, token));
+      history.append(list);
     }).catch(() => {
       if (token !== generation) return;
       history.innerHTML = '<h3>Visit history</h3><p class="message error" role="alert">Dining history is starting up or unavailable. Restaurant details are still available.</p>';

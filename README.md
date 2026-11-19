@@ -107,8 +107,9 @@ Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (resta
 The Assignment 1 instructions above remain available. The split services currently
 implement startup, versioned SQL schemas, `/health` and request logs. Restaurants
 also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
-The static catalog, saved list and read-only details/history now run in ui/;
-dining entry, bill controls and editing screens remain milestone 7. Target endpoints/configuration are in `services/*/openapi.yaml`
+The static UI in ui/ supports catalog/saved lists, details/location/personal
+edits, visit and item entry, and bill upload/download. Visit dates use Madrid
+time consistently in the browser and dining API. Endpoint contracts are in `services/*/openapi.yaml`
 and `system.yaml`. The system schema is now the official Blackboard file, copied unchanged.
 
 Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
@@ -278,12 +279,12 @@ Local Docker/CORS settings remain unchanged. No Azure resources, roles, cloud
 configuration or deployment were created by this repository correction. Actual
 initial setup commands will be documented here when authorized and executed.
 
-### Static collection UI (milestone 6)
+### Static collection and dining UI (milestones 6–7)
 
 Open [http://localhost:8080/](http://localhost:8080/) with compose running. The
 static UI supports saved/catalog lists, all five filters, restaurant creation,
-saving catalog entries, confirmed removal, details and read-only dining history.
-Visit and bill entry/edit controls remain milestone 7. Filters and detail links
+saving catalog entries, confirmed removal, details, personal/location edits,
+visit/item entry and bill uploads/downloads. Filters and detail links
 use hash routes, so reload and browser Back work on static hosting.
 
 `python scripts/configure_ui.py` generates ui/config.js with local public API

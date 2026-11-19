@@ -38,7 +38,7 @@
       },
       "post": {
         "operationId": "recordVisit",
-        "description": "Validates saved entry, marks it visited via bounded HTTP, then inserts a visit under an own-database lock. POST is not idempotent: no automatic retry. 503 distinguishes peer_unavailable (no visit inserted) from visit_outcome_uncertain (check history first). Restaurant status may remain visited after failure.",
+        "description": "Validates saved entry, marks it visited via bounded HTTP, then inserts a visit under an own-database lock. POST is not idempotent: no automatic retry. 503 distinguishes peer_unavailable (no visit inserted) from visit_outcome_uncertain (check history first). Restaurant status may remain visited after failure. Visit date validation uses the Europe/Madrid calendar, matching the static UI.",
         "responses": {
           "201": {
             "description": "Success",

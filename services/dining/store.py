@@ -1,6 +1,8 @@
 """Dining-owned SQL operations. Saved IDs are external references."""
 from contextlib import contextmanager
+from datetime import datetime
 import os
+from zoneinfo import ZoneInfo
 
 from service_runtime.database import connect
 
@@ -45,6 +47,10 @@ def bill_type(content):
     raise ValueError('Upload a PNG, JPEG or PDF bill')
 
 
+def journal_today():
+    return datetime.now(ZoneInfo('Europe/Madrid')).date()
+
+
 def validate_visit(saved_id, visit_date, rating=None, notes=None):
     """Validate the visit payload before any peer side effect."""
     import datetime
@@ -54,7 +60,7 @@ def validate_visit(saved_id, visit_date, rating=None, notes=None):
     if not isinstance(visit_date, str):
         raise ValueError('Expected ISO date')
     date = datetime.date.fromisoformat(visit_date)
-    if date.isoformat() != visit_date or date > datetime.date.today():
+    if date.isoformat() != visit_date or date > journal_today():
         raise ValueError('Visit date must not be in the future')
     if rating is not None and (type(rating) not in (int, float) or not 0 <= rating <= 5 or not math.isfinite(rating)):
         raise ValueError('Invalid rating')

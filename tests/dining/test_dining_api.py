@@ -139,3 +139,19 @@ def test_record_visit():
 def test_invalid_visit(saved,date,rating,notes):
     with pytest.raises(ValueError):
         store.record_visit(MagicMock(),saved,date,rating,notes)
+
+
+def test_madrid_midnight_is_not_rejected_as_tomorrow_in_utc(monkeypatch):
+    from services.dining import store
+    instant = datetime.datetime(2026, 11, 19, 23, 30, tzinfo=datetime.timezone.utc)
+
+    class Clock(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return instant.astimezone(tz)
+
+    monkeypatch.setattr(store, 'datetime', Clock)
+    assert store.journal_today() == datetime.date(2026, 11, 20)
+    store.validate_visit(1, '2026-11-20')
+    with pytest.raises(ValueError, match='future'):
+        store.validate_visit(1, '2026-11-21')
