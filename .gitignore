@@ -7,6 +7,11 @@ htmlcov/
 data/
 .DS_Store
 coverage.json
+docs/ASSIGNMENT_2_COMMIT_GUIDE.md
 .env
 .env.*
 !.env.example
+AGENTS.md
+.ruff_cache/
+output/playwright/
+/infra/azure/main.json

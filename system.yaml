@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=./system.schema.json
 # Restaurant/dining APIs coordinate visits and deletion over bounded HTTP.
 # Official Blackboard schema supplied 19 November 2026, copied unchanged.
-# Guide-derived naming from authenticated IE identity; resources planned, not provisioned.
+# Provisioned resource names derive from the authenticated IE identity.
 student: afijo.ieu2024
 prefix: afijo-ieu2024
-# Storage website endpoint discovered after initial setup; application release pending.
+# Live Storage website endpoint; deployed application version is reported by /health.
 public_url: https://afijoieu2024ui.z28.web.core.windows.net
 ui:
   path: ui
