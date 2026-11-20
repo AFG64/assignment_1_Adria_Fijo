@@ -6,11 +6,15 @@ services:
     environment:
       ACCEPT_EULA: 'Y'
       MSSQL_PID: Developer
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Run python scripts/configure_local.py}
+    depends_on:
+      db-init: {condition: service_started}
+    entrypoint: [python3, /local/bootstrap.py, server]
     volumes:
       - sql-data:/var/opt/mssql
+      - sql-password:/run/picky/sql:ro
+      - ./db/local_bootstrap.py:/local/bootstrap.py:ro
     healthcheck:
-      test: [CMD-SHELL, '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -b -Q "SELECT 1" -o /dev/null']
+      test: [CMD, python3, /local/bootstrap.py, health]
       interval: 5s
       timeout: 8s
       retries: 30
@@ -18,27 +22,34 @@ services:
   db-init:
     image: mcr.microsoft.com/mssql/server:2022-latest
     platform: linux/amd64
-    depends_on:
-      sql: {condition: service_healthy}
+    user: '0'
     environment:
-      SQLCMDPASSWORD: ${MSSQL_SA_PASSWORD:?Generate .env first}
-      RESTAURANTS_PASSWORD: ${RESTAURANTS_PASSWORD:?Generate .env first}
-      DINING_PASSWORD: ${DINING_PASSWORD:?Generate .env first}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-}
+      RESTAURANTS_PASSWORD: ${RESTAURANTS_PASSWORD:-}
+      DINING_PASSWORD: ${DINING_PASSWORD:-}
     volumes:
       - ./db/init.sql:/init.sql:ro
-    entrypoint: [/opt/mssql-tools18/bin/sqlcmd]
-    command: [-S, sql, -U, sa, -C, -b, -i, /init.sql]
+      - ./db/local_bootstrap.py:/local/bootstrap.py:ro
+      - sql-password:/run/picky/sql
+      - restaurants-password:/run/picky/restaurants
+      - dining-password:/run/picky/dining
+      - sql-data:/var/opt/mssql:ro
+    entrypoint: [python3, /local/bootstrap.py, init]
   restaurants:
     build:
       context: .
       dockerfile: services/restaurants/Dockerfile
       args: {VERSION: '${VERSION:-local}'}
     environment:
-      DATABASE_URL: mssql://picky_restaurants:${RESTAURANTS_PASSWORD:?Generate .env first}@sql:1433/picky_restaurants
+      DATABASE_URL: mssql://picky_restaurants:LOCAL_PASSWORD_FROM_VOLUME@sql:1433/picky_restaurants
       DINING_URL: http://dining:8000
       UI_ORIGIN: http://localhost:8080
     depends_on:
       db-init: {condition: service_completed_successfully}
+      sql: {condition: service_healthy}
+    entrypoint: [python, -m, service_runtime.local_start]
+    command: [sh, -c, 'exec gunicorn --bind 0.0.0.0:$${PORT:-8000} --workers 1 --timeout 120 --access-logfile - services.restaurants.app:app']
+    volumes: [restaurants-password:/run/picky:ro]
     ports: ['127.0.0.1:8001:8000']
   dining:
     build:
@@ -46,11 +57,15 @@ services:
       dockerfile: services/dining/Dockerfile
       args: {VERSION: '${VERSION:-local}'}
     environment:
-      DATABASE_URL: mssql://picky_dining:${DINING_PASSWORD:?Generate .env first}@sql:1433/picky_dining
+      DATABASE_URL: mssql://picky_dining:LOCAL_PASSWORD_FROM_VOLUME@sql:1433/picky_dining
       RESTAURANTS_URL: http://restaurants:8000
       UI_ORIGIN: http://localhost:8080
     depends_on:
       db-init: {condition: service_completed_successfully}
+      sql: {condition: service_healthy}
+    entrypoint: [python, -m, service_runtime.local_start]
+    command: [sh, -c, 'exec gunicorn --bind 0.0.0.0:$${PORT:-8000} --workers 1 --timeout 120 --access-logfile - services.dining.app:app']
+    volumes: [dining-password:/run/picky:ro]
     ports: ['127.0.0.1:8002:8000']
   ui:
     image: nginx:alpine
@@ -58,3 +73,6 @@ services:
     volumes: ['./ui:/usr/share/nginx/html:ro']
 volumes:
   sql-data:
+  sql-password:
+  restaurants-password:
+  dining-password:

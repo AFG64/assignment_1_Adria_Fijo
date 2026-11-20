@@ -21,301 +21,112 @@ resources and operating commands are documented in
 [Azure operations](docs/assignment-2/AZURE_OPERATIONS.md).
 Migration 002 is gated until the populated 001 baseline and the user's before
 evidence are confirmed. Private local Assignment 1 data is not automatically
-uploaded. For the current local split system, use the Assignment 2 compose
-instructions below; the following monolith commands are retained for Assignment 1.
+uploaded. Assignment 1 code and instructions remain available for reference.
 
-## Assignment 1 legacy local setup
+## Run the current system locally
 
-You need Python 3.10 or newer. Open a terminal **in this repository's root folder** (the folder containing `app.py` and `requirements.txt`), then run:
+Install Docker Desktop with Linux containers. SQL Server uses linux/amd64; on
+Apple Silicon, enable Docker Desktop's Rosetta support. The application images
+and CI use Python 3.12. No host Python or credential preparation is needed to
+start the current system.
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python app.py
-```
-
-Leave that terminal running. Open **[http://localhost:8000/](http://localhost:8000/)** in your browser to use the app. If you already have the app running, just open that address; you do not need to start another copy. Press `Ctrl+C` in the terminal to stop it.
-
-**Do not open `frontend/templates/index.html` directly.** It is a Flask template, so opening it as a `file://` page shows raw `{{ ... }}` and `{% ... %}` text and misses the styling. Flask renders it correctly at `http://localhost:8000/`.
-
-On later runs, after the first installation, activate the existing environment and start the app:
+From a fresh checkout, start the stack with one command:
 
 ```sh
-source .venv/bin/activate
-python app.py
-```
-
-`GET /health` returns `{"status":"ok"}`. The process binds to `0.0.0.0` and uses `PORT` (default `8000`). Set `DATA_DIR` to change the directory containing `devops_food.sqlite3`; the default is `./data/devops_food.sqlite3`, relative to the directory where you start the app. The database is initialized on startup without a manual migration step. Starting the app does not require an external service. The schema is in [`database/schema.sql`](database/schema.sql) and its diagram is in [`docs/SCHEMA.md`](docs/SCHEMA.md).
-
-To add the 14 sourced Madrid restaurants to the catalog, run this once from the repository root with the same `DATA_DIR` used by the app:
-
-```sh
-python -m database.seed_madrid
-```
-
-The importer can be run again: it skips matching Madrid names and leaves saved entries and visits alone. It stores names, cuisines, and street addresses from the Madrid tourism pages linked in [`database/seed_madrid.py`](database/seed_madrid.py). It does not invent ratings, prices, or map coordinates, and it does not send bulk geocoding requests. New rows appear under **All restaurants** as **Not saved**; save any you want to track.
-
-Use the **+** button beside **Picky** to open the add form. It asks for a restaurant name and optional category, city, location or street address, price level, personal rating, notes, and saved status. When an address is supplied, the app looks up its latitude and longitude and stores both with the address. On other pages, the + button returns to the home page with the form open. After saving, the new restaurant appears in the saved list. **[All restaurants](http://localhost:8000/restaurants)** shows every row in the `restaurants` table, including places that are no longer saved. Expand **Filters** to narrow the catalog by cuisine, city, price level, minimum personal rating, or saved status, and collapse it to focus on the list. Active filters stay visible when the page reloads. The filters can be combined; the minimum rating applies only to saved restaurants that have a personal rating. Choose **Clear filters** to see everything again. For an unsaved restaurant, choose **Save restaurant**, select **Want to go** or **Visited already**, then choose **Add to saved list**. This uses the student's `save_existing_restaurant` function and creates a saved entry for the existing catalog row.
-
-Click a restaurant's name or information in either list to open its detail page at `/restaurants/<id>`. An unsaved restaurant can be added to your list directly on that page; after saving, you stay on its details page. The page shows available restaurant facts and, when saved, its personal status, rating, notes, return preference, and visit history. Its Location section shows the stored address and coordinates, opens the location in OpenStreetMap, and lets you add or change the address. A full address with city and postal code works best. The app uses it as entered, even if the restaurant has a different saved city; for short addresses, it adds the saved city. If lookup fails or points to the wrong place, expand **Enter coordinates manually** and save a place name, latitude, and longitude. Check the map pin after either method because the search service can return a street or another place with a similar name. Use **Record a visit** to enter a date, optional visit rating, and notes. Recording a visit marks the saved restaurant as Visited. Under each visit, **Add what you ordered** saves a dish or drink with quantity and optional unit price. **Attach a bill** accepts a PNG, JPEG, or PDF file up to 5 MB and then offers a download link. Missing restaurant IDs return a 404 page.
-
-On a saved restaurant's detail page, expand **Edit your saved details** to change or clear your overall rating, private notes, and whether you would go back.
-
-Address lookup uses OpenStreetMap's public Nominatim service when a location form is submitted. It requires internet access; adding a restaurant without an address still works offline. The app sends an identifying User-Agent, allows at most one lookup per second in its single process, caches successful and empty results in `DATA_DIR/geocoding_cache.json`, and displays OpenStreetMap attribution by the location controls. To use a compatible service instead, set `GEOCODER_BASE_URL` to its base URL before starting the app. Delete `geocoding_cache.json` while the app is stopped to repeat cached lookups. Do not use the public service for bulk imports or autocomplete. See the [Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/).
-
-The add form calls the student's `add_restaurant` function in `backend/restaurant_domain.py`. The saved list's **Remove** button calls the student's `remove_restaurant` function after a confirmation prompt. It removes the `saved_restaurants` row, while keeping the restaurant in the full catalog. Any visits, bill records, and items linked to that saved entry are deleted by SQLite's cascading foreign keys; managed bill files are also removed. There is no way to restore them in the app. Editing general restaurant facts is not available yet. There is no login, so notes and bills are not access-controlled.
-
-If you created a database with the earlier three-table scaffold, choose a new empty `DATA_DIR` or migrate the old data. Startup reports the incompatible schema instead of altering it silently.
-
-Example configuration:
-
-```sh
-DATA_DIR=/tmp/picky-data PORT=8080 python app.py
-```
-
-## Project layout
-
-```text
-app.py                       Starts the one Flask process
-backend/
-  web.py                     Flask routes and app setup
-  restaurant_domain.py       Restaurant business logic and catalog queries
-  dining_history.py         Visit, ordered item, and bill database operations
-  bill_files.py             Bill upload validation and file storage
-  geocoding.py              Address lookup, rate limit, and persistent cache
-database/
-  __init__.py                SQLite path, connections, and initialization
-  schema.sql                 Table definitions and relationships
-frontend/
-  templates/                  Shared layout, saved list, full catalog, and detail pages
-  static/                    Page styling and add-form interaction
-docs/                         Plan, domain boundaries, schema diagram, and report
-ADR.md, AI_USAGE.md           Required process logs at the repository root
-requirements.txt             The only dependency manifest
-```
-
-The root `app.py` is the start command. `backend/web.py` handles requests, calls restaurant logic in `backend/restaurant_domain.py`, and renders files from `frontend/`. Database functions read `database/schema.sql` and store the SQLite file in `DATA_DIR`.
-
-## Feature boundaries
-
-- **Restaurant collection:** adding, saving an existing catalog row with a status, listing saved places, filtering the full catalog, viewing a restaurant's details, editing personal rating, notes, and return preference, changing an address and coordinates, and removing a saved entry are implemented. Editing other general restaurant facts is not included.
-- **Dining history:** recording and listing dated visits with optional rating and notes, recording ordered items, and attaching and downloading bill files are implemented. Spend, party size, and bill extraction remain planned.
-
-`restaurants`, `saved_restaurants`, `restaurant_images`, and `restaurant_emails` belong to the collection; `visits`, `bills`, and `visit_items` belong to dining history. A visit refers to a saved restaurant by ID. Bill files are stored in `DATA_DIR/bills/` with generated filenames; `bills.image_path` stores their relative paths in SQLite. The app checks the file signature and size before storing an upload. The bill download route checks that the bill belongs to the restaurant's visit. Keep `DATA_DIR` private because the app has no login.
-
-The planned ownership, business rules, and interactions are defined in [`docs/DOMAIN_BOUNDARIES.md`](docs/DOMAIN_BOUNDARIES.md).
-
-## Documents and checks
-
-- [`assignment_1.md`](assignment_1.md): assignment brief.
-- [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md): checklist and staged work plan.
-- [`docs/SCHEMA.md`](docs/SCHEMA.md): the seven-table database diagram and field explanations.
-- [`ADR.md`](ADR.md): five dated architecture and scope decisions.
-- [`AI_USAGE.md`](AI_USAGE.md): AI interaction log; the student's explanation needs review.
-- [`docs/REPORT.md`](docs/REPORT.md): report source with architecture and database diagrams.
-- [`output/pdf/picky-assignment-1-report.pdf`](output/pdf/picky-assignment-1-report.pdf): four-page submission report.
-
-Run the tests and measure coverage of the two backend feature domains with:
-
-```sh
-python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing
-```
-
-Measured on 2026-10-04: **83 tests passed; 97% combined domain coverage** (restaurant collection 97%, dining history 96%). These tests check restaurant validation, saving, editing, and removal, catalog filters, visit status, ordered items, bill ownership, bill-file validation and cleanup, and cascade deletion. The command measures the two domain modules, not every line of the Flask UI. Location lookup is mocked in route tests, so the test suite does not need internet access.
-
-## Assignment 2 container foundation (in progress)
-
-The Assignment 1 instructions above remain available. The split services currently
-implement startup, versioned SQL schemas, `/health` and request logs. Restaurants
-also implements catalog/saved/details/location APIs and idempotent Madrid seeding.
-The static UI in ui/ supports catalog/saved lists, details/location/personal
-edits, visit and item entry, and bill upload/download. Visit dates use Madrid
-time consistently in the browser and dining API. Endpoint contracts are in `services/*/openapi.yaml`
-and `system.yaml`. The system schema is now the official Blackboard file, copied unchanged.
-
-Install Docker Desktop. SQL Server uses `linux/amd64`; on Apple Silicon use Docker
-Desktop's Rosetta emulation. The real SQL checks also run on native amd64 in CI.
-From a clean checkout:
-
-```sh
-python3 scripts/configure_local.py
 docker compose up --build
 ```
 
-The generator creates a private, ignored `.env` with three different random local
-passwords. `.env.example` describes the required settings. Keep the generated
-passwords with the SQL volume: existing logins are deliberately not reset on
-startup. Never commit this file. If supplying your own passwords, use the same
-`Aa1` plus random-hex format to keep sqlcmd substitution and connection URLs safe.
+Open [Picky locally](http://localhost:8080). API health endpoints are
+[restaurants](http://localhost:8001/health) and [dining](http://localhost:8002/health).
+The existing one-off SQL initializer generates three distinct random passwords
+inside private Docker volumes. Each API mounts only its own password read-only;
+the SQL administrator password is never mounted into either API. Passwords and
+SQL data are retained together on later starts. If upgrading an older local
+stack, keep its original ignored .env for the first start so existing credentials
+are adopted. Conflicting credentials cause startup to fail without rotating them.
+`docker compose down` keeps data and credentials; `down --volumes` removes both.
 
-Local UI: [http://localhost:8080](http://localhost:8080).
-Restaurant health: [http://localhost:8001/health](http://localhost:8001/health).
-Dining health: [http://localhost:8002/health](http://localhost:8002/health).
-SQL is reachable only inside the compose network. One-off `db-init` creates the
-two databases/logins idempotently; each login has `db_owner` only in its own
-database so it can apply migrations. Neither service receives the SA password.
-Production privilege refinement and Azure setup remain later work.
+For one-service startup, configuration, SQL checks and offline data transfer, see
+[local development](docs/assignment-2/LOCAL_DEVELOPMENT.md).
 
-To run only one service and its database prerequisites:
+## Run checks
 
-```sh
-docker compose up --build restaurants
-```
-
-For local checks:
+Use an activated virtual environment; CI uses Python 3.12. Install the development
+manifest for the complete test suite, including both service domains:
 
 ```sh
 python -m pip install -r requirements-dev.txt
 python scripts/validate_contracts.py --require-system
 python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
-python scripts/check_stack.py
 ```
 
-The last command needs the running full stack. It checks real SQL permissions,
-second-boot migration no-ops, own read/write probes and persistence across service
-restarts. CI builds both images and runs this against a disposable SQL container,
-never Azure SQL. Coverage still measures the original feature modules until the
-feature APIs are ported; runtime unit tests additionally exercise startup safety.
+The [local development guide](docs/assignment-2/LOCAL_DEVELOPMENT.md#tests-and-checks)
+lists the real SQL/HTTP checks. CI also builds both images, lints workflows,
+compiles Bicep and checks the migration evidence gate. CI uses disposable local
+SQL containers; deployment runs only after CI passes on the same main SHA.
 
-Each service image uses an allowlisted build context, explicit COPY, a pinned
-manifest and UID 10001. Gunicorn starts one worker after acquiring a database
-migration lock. SQL scripts and ledger entries commit together; applied script
-checksums are verified and modified/missing applied files cause startup to fail.
-No `002` exists yet. Do not edit `001` after applying it; use a new migration for
-future changes. No startup path drops a database or erases existing tables.
+## Repository layout
 
-Database connections use encrypted TDS, 5-second login/query timeouts and up to
-12 startup attempts with capped exponential backoff (about two minutes including
-connection timeouts). Read/write health probes roll back their temporary rows
-and return 503 when the own database fails; they do not call the peer. Request
-logs include method, path, status, duration, service and version. `PORT`,
-`DATABASE_URL`, `VERSION` and `UI_ORIGIN` are the runtime settings currently read;
-other settings in `system.yaml` describe the target APIs. A nonlocal version can
-be built with `VERSION=$(git rev-parse HEAD) docker compose build`.
+```text
+services/
+  restaurants/          Restaurant API, pinned dependencies, Dockerfile and migrations
+  dining/               Dining API, pinned dependencies, Dockerfile and migrations
+service_runtime/        Shared SQL/migration, HTTP peer and health/logging helpers
+ui/                     Current static HTML/CSS/JS and public API configuration
+db/                     Local SQL Server database/login initialization
+infra/azure/            Bicep, nonsecret deployment plan and migration checkpoint
+scripts/                Local verification, data transfer and Azure operating tools
+tests/
+  restaurants/          Restaurant service unit tests
+  dining/               Dining service unit tests
+  runtime/              Shared runtime tests
+  seam/                 Service coordination tests
+  test_*.py             Legacy regressions and configuration/contract/tooling tests
+.github/workflows/      Reusable CI and main-only CD
+system.yaml             Service boundaries, configuration, calls and Azure names
+system.schema.json      Unmodified official system schema
+requirements-dev.txt    Full development/testing dependencies
+backend/, database/,    Retained Assignment 1 Flask/SQLite application
+frontend/, app.py
+requirements.txt        Dependencies for the legacy application
 
-`docker compose down` retains the named SQL volume. Do not use `down --volumes`
-for data you want to keep. To repeat initialization without resetting data:
-
-```sh
-docker compose run --rm db-init
-docker compose restart restaurants dining
+docs/README.md          Documentation index
+docs/assignment-1/      Legacy application instructions
+docs/assignment-2/      Current technical guides and course requirement references
+ADR.md, AI_USAGE.md     Student-owned process records
+output/pdf/             Existing Assignment 1 report
 ```
 
-Restaurant API regression (running local stack): `python scripts/check_restaurant_api.py`.
-For example, `GET http://localhost:8001/restaurants?city=Madrid&status=not_saved`
-lists unsaved catalog entries. JSON responses include nested `saved` details;
-creation/saving use POST, personal detail changes use PATCH, and location changes
-use PUT. See the restaurant OpenAPI for bodies and status codes. A location can
-be entered manually offline. Address search uses a bounded timeout, one-second
-rate limit and a 256-entry in-memory success cache in the single worker. Cache
-contents reset on restart. Do not bulk-geocode or use autocomplete.
+Each service's requirements.txt is the pinned runtime manifest for its image.
+The root requirements.txt supports the legacy app; requirements-dev.txt supports
+repository-wide checks. `db/` initializes local SQL Server, while `database/`
+belongs to the retained SQLite app.
 
-Removal now coordinates dining cleanup over HTTP; see milestone 5 below.
-Unit tests enforce at least 70% on each restaurant core module, alongside the
-transitional legacy domain/runtime floors. The SQL HTTP check runs in CI after
-compose starts and cleans up only records it creates. Dining own-domain workflows are described below.
+## Documentation
 
+Start with the [documentation index](docs/README.md). Main references:
 
-### Dining SQL and Assignment 1 transfer
+- [API operation map](docs/assignment-2/API_TRANSITION.md) and committed
+  [restaurant](services/restaurants/openapi.yaml)/[dining](services/dining/openapi.yaml) OpenAPI contracts.
+- [Static UI](docs/assignment-2/STATIC_UI.md) and
+  [cross-service coordination/recovery](docs/assignment-2/SERVICE_COORDINATION.md).
+- [Azure setup and operation](docs/assignment-2/AZURE_OPERATIONS.md) and
+  [verified resource inventory](docs/assignment-2/AZURE_READINESS.md).
+- [Updated course requirements](docs/assignment-2/REQUIREMENT_UPDATES.md) and
+  [official schema provenance](docs/assignment-2/SYSTEM_SCHEMA.md).
+- [Legacy Assignment 1 instructions](docs/assignment-1/README.md).
 
-Dining now lists history and stores ordered items and PNG/JPEG/PDF bill contents
-in its own SQL database. Downloads check the saved-entry, visit and bill IDs.
-Uploads are limited to 5 MiB and returned as attachments. Container replacement
-does not remove bill contents. Visit creation now uses the restaurant coordinator and history DELETE performs
-idempotent cleanup under the dining lock (see milestone 5 below).
-Existing history, item and bill operations do not contact restaurants.
+## Git workflow and ownership
 
-Run `python scripts/check_dining_sql.py` with compose running. It creates two
-**local disposable** databases, tests repeated transfers, conflicts, original IDs,
-SQL bill bytes and scoped HTTP operations, and removes only those test databases.
-CI runs this check and enforces at least 70% on each dining core module.
+Use descriptive feature branches and a pull request to main. Required checks must
+pass before merge; a main merge starts the Azure release automatically. Keep
+meaningful commits with their actual timestamps. Ignore rules do not remove files
+already in Git history or untrack them automatically.
 
-For existing Assignment 1 data, first stop writes and make an SQLite backup
-(using SQLite's backup API, not a file copy while writes may be active). Copy the
-adjacent `bills/` directory beside that backup. Keep both under ignored `data/`;
-never commit private bills or migrate them to the public demonstration system.
-Validate the copy without changing any target:
-
-```sh
-python scripts/transfer_assignment1.py data/assignment2-check/snapshot.sqlite3
-python scripts/check_dining_sql.py --snapshot data/assignment2-check/snapshot.sqlite3
-```
-
-The second command imports that copy twice into disposable local targets and
-compares all source fields, relationships and bill bytes. Originals are untouched.
-For an actual offline transfer, configure `RESTAURANTS_DATABASE_URL` and
-`DINING_DATABASE_URL` securely in the local environment, then run the first
-command with `--apply`. Never pass URLs as command arguments or paste credentials
-into chat. The targets must already have 001 applied. Stop all application writes
-and restaurant seeding; use empty targets or exact matching rows. A seeded target
-may have conflicting IDs, which are rejected rather than overwritten.
-
-Each domain transfers in one transaction. The two databases cannot commit
-atomically: if the second domain fails, correct the cause and rerun against the
-same snapshot before allowing traffic. Existing identical IDs are skipped;
-conflicting IDs roll back that domain. Bill files must exist inside the copied
-`bills/` directory; missing, invalid, oversized or symlinked files are rejected.
-No migration file is changed by transfer. Cloud baseline uses synthetic data only.
-
-Azure readiness and the proposed resource inventory are in
-[AZURE_READINESS.md](docs/assignment-2/AZURE_READINESS.md). Initial resources were
-provisioned on 20 November; application release status is recorded by main’s
-CI/CD runs and each service’s health version.
-
-### Service coordination (milestone 5)
-
-Dining now records visits through the restaurant API: it validates the saved ID,
-marks it visited, then commits the visit. Peer failure produces an explicit 503;
-POST is not automatically retried. When an own write cannot be confirmed, check
-history before submitting again. Restaurant status may remain visited after a
-failed attempt. Saved-entry deletion removes the saved row, then asks dining to
-clear history/items/bill bytes; 503 cleanup_pending means retry that same DELETE
-until 204. The catalog row remains. See
-[coordination details](docs/assignment-2/SERVICE_COORDINATION.md) for concurrency,
-recovery and the distinction between peer failure and an uncertain own write.
-Run `python scripts/check_seam.py` against the local compose stack to check real
-service calls, stopped peers, recovery and concurrent deletion. No migration 002
-has been added or applied.
-
-### Updated deployment contract (19 November)
-
-Initial setup is defined in [infra/azure/main.bicep](infra/azure/main.bicep), with
-a nonsecret proposed plan and guarded CLI runner. See the exact setup steps,
-credential handling and migration checkpoint in
-[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The default command
-`python scripts/azure_setup.py plan` only prints the proposed resources.
-No Azure application deployment is claimed by the presence of these files.
-
-The supplied updated course guide supersedes the earlier shared-class Azure plan.
-Individual Assignment 2 uses your active Azure for Students subscription and a
-personal resource group rg-afijo-ieu2024. The UI goes to a Storage static website,
-the pipeline uses an OIDC managed identity, SQL uses the serverless free offer,
-and the Container Apps Log Analytics workspace is permitted. Read
-[requirement updates](docs/assignment-2/REQUIREMENT_UPDATES.md) and the updated
-[Azure readiness plan](docs/assignment-2/AZURE_READINESS.md) before setup.
-
-The official system.schema.json is copied unchanged and validated in CI.
-The Storage website endpoint discovered during setup is
-[the Picky UI](https://afijoieu2024ui.z28.web.core.windows.net). system.yaml uses
-that address; each main release generates the HTTPS API configuration and CORS.
-Initial resource creation, scoped roles and secret setup are documented in
-[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md). The main workflow's
-successful health/version checks determine whether an application release is live.
-
-### Static collection and dining UI (milestones 6–7)
-
-Open [http://localhost:8080/](http://localhost:8080/) with compose running. The
-static UI supports saved/catalog lists, all five filters, restaurant creation,
-saving catalog entries, confirmed removal, details, personal/location edits,
-visit/item entry and bill uploads/downloads. Filters and detail links
-use hash routes, so reload and browser Back work on static hosting.
-
-`python scripts/configure_ui.py` generates ui/config.js with local public API
-addresses. Use `--restaurants-url` and `--dining-url` to supply deployment HTTPS
-addresses; keep secrets out of this file. The generated local defaults are
-committed, so no additional frontend build step is needed for compose. See
-[static UI configuration and recovery](docs/assignment-2/STATIC_UI.md).
-Unknown removal outcomes retain a pending cleanup action until confirmed by 204;
-unknown POST outcomes require checking existing data before trying again.
+Personal decisions, AI usage, explanations, report/disclosure and selected
+evidence are written by the student. See [ADRs](ADR.md) and [AI usage](AI_USAGE.md).
+Local agent instructions and the working roadmap are intentionally ignored;
+they are not required to run the application or its CI. Migration 002 remains
+paused at the populated-baseline checkpoint until the student confirms before
+evidence is captured.

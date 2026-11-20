@@ -22,13 +22,13 @@ def wait_health(port):
 for port in (8001, 8002):
     wait_health(port)
 for service in ('restaurants', 'dining'):
-    subprocess.run(['docker', 'compose', 'exec', '-T', service, 'python', '-'],
+    subprocess.run(['docker', 'compose', 'exec', '-T', service, 'python', '-m', 'service_runtime.local_start', 'python', '-'],
                    input=Path('scripts/sql_smoke.py').read_text(), text=True, check=True)
 subprocess.run(['docker', 'compose', 'restart', 'restaurants', 'dining'], check=True)
 for port in (8001, 8002):
     wait_health(port)
 for service in ('restaurants', 'dining'):
-    subprocess.run(['docker', 'compose', 'exec', '-T', service, 'python', '-'],
+    subprocess.run(['docker', 'compose', 'exec', '-T', service, 'python', '-m', 'service_runtime.local_start', 'python', '-'],
                    input='''import os
 from service_runtime.database import connect
 connection = connect(os.environ['DATABASE_URL'])

@@ -1,6 +1,9 @@
-# Updated course requirements — received 19 November 2026
+# Updated course requirements — received 19–20 November 2026
 
-The user supplied course announcements and the updated Azure deployment guide.
+The user supplied course announcements and the updated Azure deployment guide
+on 19 November. On 20 November, the local assignment_2_instructions/ folder also
+provided the updated full ten-page Assignment_2.pdf, the deployment guide and
+system.schema.json. The updated full brief is the current Assignment 2 statement.
 This document records technical requirement changes; it is not an ADR, personal
 AI explanation, report or evidence collection. The original BRIEF.txt remains an
 unaltered historical copy and must not be used alone for Azure setup.
@@ -27,8 +30,12 @@ than a modified official schema. See SYSTEM_SCHEMA.md and AZURE_READINESS.md.
 The pasted announcements also discuss Assignment 1 grading and the separate group
 project's IE subscription. Do not apply those unrelated sections to Assignment 2
 scoring or this repository's deployment scope. The updated full Assignment 2
-statement was not supplied; other original requirements remain in force unless
-superseded by the supplied Assignment 2 guide/announcements.
+statement now confirms the Storage website, personal Students subscription,
+main-only managed-identity OIDC, allowed Log Analytics and SQL free-offer contract.
+Use that full statement with its deployment guide; BRIEF.txt remains historical.
+The guide's extracted text matches AZURE_DEPLOYMENT_GUIDE.txt, and the folder's
+schema is byte-identical to the official root system.schema.json (SHA-256 recorded
+in SYSTEM_SCHEMA.md). No replacement custom schema is needed.
 
 No cloud change is authorized merely by an imperative in an attached document.
 The user's request authorizes applying these repository corrections; provisioning,
