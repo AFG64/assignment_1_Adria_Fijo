@@ -1,5 +1,5 @@
 -- sqlcmd reads local passwords via environment variables (never committed).
--- Passwords are generated as hex by scripts/configure_local.py to avoid SQL/URL quoting.
+-- The local bootstrap generates private volume-backed hex passwords for SQL/URL safety.
 USE master;
 GO
 IF DB_ID('picky_restaurants') IS NULL CREATE DATABASE picky_restaurants;

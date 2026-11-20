@@ -45,7 +45,7 @@ try:
         saved_seed_id = saved['id']
         assert call('GET', f'/saved-restaurants/{saved_seed_id}')['restaurant_id'] == candidates[0]['id']
     # Seed reruns do not duplicate catalog rows. Personal data stays intact.
-    subprocess.run(['docker','compose','exec','-T','restaurants','python','-'],text=True,check=True,input='''
+    subprocess.run(['docker','compose','exec','-T','restaurants','python','-m','service_runtime.local_start','python','-'],text=True,check=True,input='''
 from services.restaurants.seed import seed
 from services.restaurants.catalog import transaction
 with transaction() as cursor:
@@ -64,7 +64,7 @@ print('Seed rerun: unchanged row count')
     call('DELETE',f'/saved-restaurants/{sid}',expected=204)
 finally:
     if saved_seed_id:
-        subprocess.run(['docker','compose','exec','-T','restaurants','python','-',str(saved_seed_id)], text=True,check=True,input='''
+        subprocess.run(['docker','compose','exec','-T','restaurants','python','-m','service_runtime.local_start','python','-',str(saved_seed_id)], text=True,check=True,input='''
 import sys
 from services.restaurants.catalog import transaction
 with transaction() as cursor:
@@ -72,7 +72,7 @@ with transaction() as cursor:
 ''')
     if created:
         # Remove only this test's owned restaurant; no public deletion claims yet.
-        subprocess.run(['docker','compose','exec','-T','restaurants','python','-',str(created['id'])], text=True,check=True,input='''
+        subprocess.run(['docker','compose','exec','-T','restaurants','python','-m','service_runtime.local_start','python','-',str(created['id'])], text=True,check=True,input='''
 import sys
 from services.restaurants.catalog import transaction
 with transaction() as cursor:

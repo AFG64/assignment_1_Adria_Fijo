@@ -8,9 +8,7 @@ import sys
 
 
 def sql(statement):
-    subprocess.run(['docker','compose','exec','-T','sql','sh','-c',
-                    'exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -Q "$1"',
-                    'check-dining',statement],check=True,stdout=subprocess.DEVNULL)
+    subprocess.run(['docker','compose','exec','-T','sql','python3','/local/bootstrap.py','sql','-Q',statement],check=True,stdout=subprocess.DEVNULL)
 
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -66,7 +64,7 @@ print('Dining SQL: repeat transfer, conflict rollback, identity continuation, sc
 '''
     if source_snapshot is not None:
         code += f"\nsnapshot={source_snapshot!r}\n" + "with closing(connect(url)) as connection:\n    for _ in range(2):\n        transfer_domain(connection,GROUPS['DINING_DATABASE_URL'],snapshot)\nprint('Private dining copy transferred twice with exact row and bill comparison')\n"
-    subprocess.run(['docker','compose','exec','-T','dining','python','-'],input=code,text=True,check=True)
+    subprocess.run(['docker','compose','exec','-T','dining','python','-m','service_runtime.local_start','python','-'],input=code,text=True,check=True)
     subprocess.run(['docker','compose','restart','dining'],check=True)
     subprocess.run(['docker','compose','up','-d','--wait','--wait-timeout','180','dining'],check=True)
     persistence = '''
@@ -78,7 +76,7 @@ app=Flask('restart-check');register(app)
 assert app.test_client().get('/saved-restaurants/900/visits/800/bills/802').data==b'%PDF-synthetic\\x00\\xff'
 print('Dining restart retained exact SQL bill bytes')
 '''
-    subprocess.run(['docker','compose','exec','-T','dining','python','-'],input=persistence,text=True,check=True)
+    subprocess.run(['docker','compose','exec','-T','dining','python','-m','service_runtime.local_start','python','-'],input=persistence,text=True,check=True)
     configuration = json.loads(subprocess.check_output(['docker','compose','config','--format','json'],text=True))
     environment = dict(os.environ)
     environment['DATABASE_URL'] = configuration['services']['restaurants']['environment']['DATABASE_URL'].rsplit('/',1)[0]+'/picky_transfer_restaurants'
@@ -101,7 +99,7 @@ print('Restaurant SQL: IDs, relationships and repeat transfer passed')
 '''
     if source_snapshot is not None:
         code += f"\nsnapshot={source_snapshot!r}\n" + "with closing(connect(url)) as connection:\n    for _ in range(2):\n        transfer_domain(connection,GROUPS['RESTAURANTS_DATABASE_URL'],snapshot)\nprint('Private restaurant copy transferred twice with exact row comparison')\n"
-    subprocess.run(['docker','compose','run','--rm','--no-deps','-T','-e','DATABASE_URL','dining','python','-'],input=code,text=True,check=True,env=environment)
+    subprocess.run(['docker','compose','run','--rm','--no-deps','-T','-e','DATABASE_URL','restaurants','python','-'],input=code,text=True,check=True,env=environment)
 
 finally:
     for name in reversed(created):

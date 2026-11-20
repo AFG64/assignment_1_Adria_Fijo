@@ -18,8 +18,7 @@ def run(args, **kwargs):
 
 
 def sql(statement):
-    return run(['docker', 'compose', 'exec', '-T', 'sql', 'sh', '-c',
-                'exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -h-1 -W -s,'],
+    return run(['docker', 'compose', 'exec', '-T', 'sql', 'python3', '/local/bootstrap.py', 'sql', '-h-1', '-W', '-s,'],
                input='SET NOCOUNT ON;\n' + statement, timeout=120)
 
 

@@ -15,7 +15,6 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from service_runtime.database import connect
-from services.dining.store import bill_type
 
 GROUPS = {
     'RESTAURANTS_DATABASE_URL': ['restaurants', 'saved_restaurants', 'restaurant_images', 'restaurant_emails'],
@@ -33,6 +32,8 @@ def normalize(value):
 
 def load_snapshot(source):
     """Read a copied SQLite database read-only and validate all source relations."""
+    from services.dining.store import bill_type
+
     source = Path(source).resolve()
     with closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True)) as db:
         db.row_factory = sqlite3.Row

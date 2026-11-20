@@ -80,7 +80,7 @@ finally:
     for row in created:
         call(8001,'DELETE',f"/saved-restaurants/{row['saved']['id']}")
     ids=[row['id'] for row in created]
-    subprocess.run(['docker','compose','exec','-T','restaurants','python','-'],text=True,check=True,input=f'''
+    subprocess.run(['docker','compose','exec','-T','restaurants','python','-m','service_runtime.local_start','python','-'],text=True,check=True,input=f'''
 from services.restaurants.catalog import transaction
 with transaction() as cursor:
     for restaurant_id in {ids!r}:

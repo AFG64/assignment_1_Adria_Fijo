@@ -22,7 +22,7 @@ finally:
         if row.get('saved'):
             api.call('restaurants', 'DELETE', '/saved-restaurants/' + str(row['saved']['id']), expected=204)
         # Only this unique check's exact catalog ID/title is removed. Never user data.
-        subprocess.run(['docker', 'compose', 'exec', '-T', 'restaurants', 'python', '-'], text=True, check=True,
+        subprocess.run(['docker', 'compose', 'exec', '-T', 'restaurants', 'python', '-m', 'service_runtime.local_start', 'python', '-'], text=True, check=True,
                        input=f'''from services.restaurants.catalog import transaction
 with transaction() as cursor:
     cursor.execute('DELETE FROM dbo.restaurants WHERE id=%s AND title=%s', ({row['id']!r}, {marker!r}))

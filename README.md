@@ -27,21 +27,24 @@ uploaded. Assignment 1 code and instructions remain available for reference.
 
 Install Docker Desktop with Linux containers. SQL Server uses linux/amd64; on
 Apple Silicon, enable Docker Desktop's Rosetta support. The application images
-and CI use Python 3.12; the local configuration generator uses only Python's
-standard library.
+and CI use Python 3.12. No host Python or credential preparation is needed to
+start the current system.
 
-From a fresh checkout, generate local credentials once, then start the stack:
+From a fresh checkout, start the stack with one command:
 
 ```sh
-python3 scripts/configure_local.py
 docker compose up --build
 ```
 
 Open [Picky locally](http://localhost:8080). API health endpoints are
 [restaurants](http://localhost:8001/health) and [dining](http://localhost:8002/health).
-Reuse the existing ignored .env and named SQL volume on later starts. The
-configuration generator refuses to overwrite credentials. `docker compose down`
-keeps data; `down --volumes` removes the database volume.
+The existing one-off SQL initializer generates three distinct random passwords
+inside private Docker volumes. Each API mounts only its own password read-only;
+the SQL administrator password is never mounted into either API. Passwords and
+SQL data are retained together on later starts. If upgrading an older local
+stack, keep its original ignored .env for the first start so existing credentials
+are adopted. Conflicting credentials cause startup to fail without rotating them.
+`docker compose down` keeps data and credentials; `down --volumes` removes both.
 
 For one-service startup, configuration, SQL checks and offline data transfer, see
 [local development](docs/assignment-2/LOCAL_DEVELOPMENT.md).

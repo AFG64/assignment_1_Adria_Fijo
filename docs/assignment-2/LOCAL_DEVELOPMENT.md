@@ -16,15 +16,24 @@ Desktop's Rosetta emulation. The real SQL checks also run on native amd64 in CI.
 From a clean checkout:
 
 ```sh
-python3 scripts/configure_local.py
 docker compose up --build
 ```
 
-The generator creates a private, ignored `.env` with three different random local
-passwords. `.env.example` describes the required settings. Keep the generated
-passwords with the SQL volume: existing logins are deliberately not reset on
-startup. Never commit this file. If supplying your own passwords, use the same
-`Aa1` plus random-hex format to keep sqlcmd substitution and connection URLs safe.
+No host Python or .env is required. The stock SQL image's existing one-off db-init
+service creates three different random passwords in separate named Docker volumes.
+It publishes credential readiness, then waits for SQL and initializes the two
+databases/logins. SQL waits for credential readiness; APIs wait for SQL health and
+initialization to finish. Starting one API also starts these prerequisites. Each
+API mounts only its own password volume read-only. The initializer
+runs as root only to set volume ownership/mode (UID 10001, directories 0700,
+files 0600); SQL and both custom service containers run as UID 10001.
+
+Keep the password volumes with sql-data: existing logins are never reset. On the
+first upgrade of an older stack, keep its existing ignored .env so db-init adopts
+the original passwords. A supplied value that differs from a retained password
+fails startup without changing it. Optional .env.example inputs use Aa1 followed
+by 48 random hex digits for SQL/URL safety; scripts/configure_local.py remains an
+optional generator, not a startup prerequisite. Never commit private .env files.
 
 Local UI: [http://localhost:8080](http://localhost:8080).
 Restaurant health: [http://localhost:8001/health](http://localhost:8001/health).
@@ -67,6 +76,12 @@ peers. check_stack.py verifies repeat boot and restart persistence;
 check_dining_sql.py also verifies exact bill bytes across a restart.
 check_azure_roles.py checks the proposed Azure contained-user roles locally and
 restores the original local SQL instance settings.
+
+Compose-only service_runtime.local_start resolves the own mounted password into
+DATABASE_URL before executing the service command. Azure keeps the image's
+original command and complete secret-backed DATABASE_URL. For a fresh process
+inside a local service, use `docker compose exec restaurants python -m service_runtime.local_start python ...`; verification scripts do this explicitly.
+SQL administrative checks use `docker compose exec -T sql python3 /local/bootstrap.py sql` with sqlcmd flags/input, without password arguments.
 
 Coverage floors apply independently to restaurant and dining core modules,
 shared runtime modules and the retained legacy domains. Both Docker images,
