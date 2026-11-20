@@ -1,8 +1,30 @@
 # Picky
 
-Picky is an approved personal restaurant discovery and dining-history app for Individual Assignment 1. One Flask process serves the UI and two SQLite-backed feature domains: restaurant collection and dining history. The app supports saved places, catalog filters, location lookup, dated visits, ordered items, and bill uploads.
+Picky is a personal restaurant journal developed across Individual Assignments 1–2.
+The current version serves a static UI and two Flask APIs, each owning an isolated
+SQL database. It supports saved places, location editing, visits, ordered items
+and bill uploads/downloads.
 
-## Run locally
+## Live Assignment 2 system
+
+| Component | Public endpoint |
+|---|---|
+| Picky UI | [Open Picky](https://afijoieu2024ui.z28.web.core.windows.net) |
+| Restaurant API | [Own SQL health](https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/health) |
+| Dining API | [Own SQL health](https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/health) |
+
+The first main release passed CI/CD on 20 November. Each health response reports
+its deployed Git SHA; compare it with the latest successful main Actions run.
+Every main release rebuilds SHA-tagged images, applies pending forward migrations,
+checks both own databases, and publishes public-only UI configuration. Initial
+resources and operating commands are documented in
+[Azure operations](docs/assignment-2/AZURE_OPERATIONS.md).
+Migration 002 is gated until the populated 001 baseline and the user's before
+evidence are confirmed. Private local Assignment 1 data is not automatically
+uploaded. For the current local split system, use the Assignment 2 compose
+instructions below; the following monolith commands are retained for Assignment 1.
+
+## Assignment 1 legacy local setup
 
 You need Python 3.10 or newer. Open a terminal **in this repository's root folder** (the folder containing `app.py` and `requirements.txt`), then run:
 
