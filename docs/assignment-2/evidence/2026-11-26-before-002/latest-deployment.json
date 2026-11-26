@@ -1,0 +1,602 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-11-20T10:36:20Z",
+  "databaseId": 44720653840,
+  "headSha": "0d313d7b08ea4ba5ed79b4f47ba7ca660c37ad6a",
+  "jobs": [
+    {
+      "completedAt": "2026-11-20T10:37:55Z",
+      "conclusion": "success",
+      "databaseId": 136235206548,
+      "name": "ci / containers-and-sql",
+      "startedAt": "2026-11-20T10:36:23Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-20T10:36:24Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-20T10:36:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:25Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-20T10:36:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:26Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-11-20T10:36:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:54Z",
+          "conclusion": "success",
+          "name": "Start one service and its prerequisites from a clean checkout without .env",
+          "number": 4,
+          "startedAt": "2026-11-20T10:36:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:03Z",
+          "conclusion": "success",
+          "name": "Build both images and start the complete system",
+          "number": 5,
+          "startedAt": "2026-11-20T10:36:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:08Z",
+          "conclusion": "success",
+          "name": "Own SQL, login isolation, repeat boot and restart persistence",
+          "number": 6,
+          "startedAt": "2026-11-20T10:37:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:11Z",
+          "conclusion": "success",
+          "name": "Repeat compose startup with retained credentials and data",
+          "number": 7,
+          "startedAt": "2026-11-20T10:37:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:13Z",
+          "conclusion": "success",
+          "name": "Restaurant SQL API workflows",
+          "number": 8,
+          "startedAt": "2026-11-20T10:37:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:22Z",
+          "conclusion": "success",
+          "name": "Dining SQL and repeatable transfer",
+          "number": 9,
+          "startedAt": "2026-11-20T10:37:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:46Z",
+          "conclusion": "success",
+          "name": "Service coordination and stopped-peer recovery",
+          "number": 10,
+          "startedAt": "2026-11-20T10:37:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:50Z",
+          "conclusion": "success",
+          "name": "Azure contained-user role compatibility on LOCAL SQL only",
+          "number": 11,
+          "startedAt": "2026-11-20T10:37:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:51Z",
+          "conclusion": "success",
+          "name": "Synthetic baseline workflow on LOCAL HTTP and SQL only",
+          "number": 12,
+          "startedAt": "2026-11-20T10:37:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:51Z",
+          "conclusion": "skipped",
+          "name": "Logs on failure",
+          "number": 13,
+          "startedAt": "2026-11-20T10:37:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:52Z",
+          "conclusion": "success",
+          "name": "Stop disposable CI containers",
+          "number": 14,
+          "startedAt": "2026-11-20T10:37:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:52Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 27,
+          "startedAt": "2026-11-20T10:37:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:52Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 28,
+          "startedAt": "2026-11-20T10:37:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:37:52Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 29,
+          "startedAt": "2026-11-20T10:37:52Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840/job/136235206548"
+    },
+    {
+      "completedAt": "2026-11-20T10:36:55Z",
+      "conclusion": "success",
+      "databaseId": 136235207196,
+      "name": "ci / baseline",
+      "startedAt": "2026-11-20T10:36:23Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-20T10:36:24Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-20T10:36:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:25Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-20T10:36:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:26Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-11-20T10:36:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:31Z",
+          "conclusion": "success",
+          "name": "Run python -m pip install -r requirements-dev.txt",
+          "number": 4,
+          "startedAt": "2026-11-20T10:36:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:32Z",
+          "conclusion": "success",
+          "name": "Lint current Python and contract checks",
+          "number": 5,
+          "startedAt": "2026-11-20T10:36:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:32Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 6,
+          "startedAt": "2026-11-20T10:36:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:32Z",
+          "conclusion": "success",
+          "name": "Check static UI JavaScript syntax",
+          "number": 7,
+          "startedAt": "2026-11-20T10:36:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:33Z",
+          "conclusion": "success",
+          "name": "Validate system and proposed API contracts",
+          "number": 8,
+          "startedAt": "2026-11-20T10:36:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:33Z",
+          "conclusion": "success",
+          "name": "Validate deployment plan and migration checkpoint offline",
+          "number": 9,
+          "startedAt": "2026-11-20T10:36:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:43Z",
+          "conclusion": "success",
+          "name": "Compile Azure infrastructure without signing in",
+          "number": 10,
+          "startedAt": "2026-11-20T10:36:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:46Z",
+          "conclusion": "success",
+          "name": "Lint GitHub workflows",
+          "number": 11,
+          "startedAt": "2026-11-20T10:36:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:53Z",
+          "conclusion": "success",
+          "name": "Test existing behavior and measure each domain",
+          "number": 12,
+          "startedAt": "2026-11-20T10:36:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:53Z",
+          "conclusion": "success",
+          "name": "Run python scripts/check_domain_coverage.py",
+          "number": 13,
+          "startedAt": "2026-11-20T10:36:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 24,
+          "startedAt": "2026-11-20T10:36:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:53Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 25,
+          "startedAt": "2026-11-20T10:36:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:54Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 26,
+          "startedAt": "2026-11-20T10:36:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:36:54Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-11-20T10:36:54Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840/job/136235207196"
+    },
+    {
+      "completedAt": "2026-11-20T10:38:27Z",
+      "conclusion": "success",
+      "databaseId": 136235944410,
+      "name": "publish (dining)",
+      "startedAt": "2026-11-20T10:37:57Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-20T10:38:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-20T10:37:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-20T10:38:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:01Z",
+          "conclusion": "success",
+          "name": "Define lowercase SHA image name",
+          "number": 3,
+          "startedAt": "2026-11-20T10:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:08Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@v3",
+          "number": 4,
+          "startedAt": "2026-11-20T10:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:09Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@v3",
+          "number": 5,
+          "startedAt": "2026-11-20T10:38:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:22Z",
+          "conclusion": "success",
+          "name": "Run docker/build-push-action@v6",
+          "number": 6,
+          "startedAt": "2026-11-20T10:38:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:23Z",
+          "conclusion": "success",
+          "name": "Post Run docker/build-push-action@v6",
+          "number": 9,
+          "startedAt": "2026-11-20T10:38:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:24Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@v3",
+          "number": 10,
+          "startedAt": "2026-11-20T10:38:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:25Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@v3",
+          "number": 11,
+          "startedAt": "2026-11-20T10:38:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:25Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 12,
+          "startedAt": "2026-11-20T10:38:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:25Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-11-20T10:38:25Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840/job/136235944410"
+    },
+    {
+      "completedAt": "2026-11-20T10:38:28Z",
+      "conclusion": "success",
+      "databaseId": 136235944458,
+      "name": "publish (restaurants)",
+      "startedAt": "2026-11-20T10:37:57Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-20T10:38:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-20T10:37:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-20T10:38:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:01Z",
+          "conclusion": "success",
+          "name": "Define lowercase SHA image name",
+          "number": 3,
+          "startedAt": "2026-11-20T10:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:09Z",
+          "conclusion": "success",
+          "name": "Run docker/setup-buildx-action@v3",
+          "number": 4,
+          "startedAt": "2026-11-20T10:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:10Z",
+          "conclusion": "success",
+          "name": "Run docker/login-action@v3",
+          "number": 5,
+          "startedAt": "2026-11-20T10:38:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:22Z",
+          "conclusion": "success",
+          "name": "Run docker/build-push-action@v6",
+          "number": 6,
+          "startedAt": "2026-11-20T10:38:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:24Z",
+          "conclusion": "success",
+          "name": "Post Run docker/build-push-action@v6",
+          "number": 9,
+          "startedAt": "2026-11-20T10:38:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:24Z",
+          "conclusion": "success",
+          "name": "Post Run docker/login-action@v3",
+          "number": 10,
+          "startedAt": "2026-11-20T10:38:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:26Z",
+          "conclusion": "success",
+          "name": "Post Run docker/setup-buildx-action@v3",
+          "number": 11,
+          "startedAt": "2026-11-20T10:38:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:26Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 12,
+          "startedAt": "2026-11-20T10:38:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:26Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-11-20T10:38:26Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840/job/136235944458"
+    },
+    {
+      "completedAt": "2026-11-20T10:39:54Z",
+      "conclusion": "success",
+      "databaseId": 136236211732,
+      "name": "deploy",
+      "startedAt": "2026-11-20T10:38:31Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-11-20T10:38:33Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-11-20T10:38:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:34Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-11-20T10:38:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:34Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-python@v5",
+          "number": 3,
+          "startedAt": "2026-11-20T10:38:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:35Z",
+          "conclusion": "success",
+          "name": "Run python -m pip install PyYAML==6.0.3",
+          "number": 4,
+          "startedAt": "2026-11-20T10:38:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:38:39Z",
+          "conclusion": "success",
+          "name": "Run azure/login@v2",
+          "number": 5,
+          "startedAt": "2026-11-20T10:38:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:49Z",
+          "conclusion": "success",
+          "name": "Deploy exact SHA, verify both APIs and upload the static UI",
+          "number": 6,
+          "startedAt": "2026-11-20T10:38:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:50Z",
+          "conclusion": "success",
+          "name": "End Azure session",
+          "number": 7,
+          "startedAt": "2026-11-20T10:39:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:50Z",
+          "conclusion": "success",
+          "name": "Post Run azure/login@v2",
+          "number": 12,
+          "startedAt": "2026-11-20T10:39:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:50Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-python@v5",
+          "number": 13,
+          "startedAt": "2026-11-20T10:39:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:50Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 14,
+          "startedAt": "2026-11-20T10:39:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-11-20T10:39:51Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-11-20T10:39:51Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840/job/136236211732"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-11-20T10:39:54Z",
+  "url": "https://github.com/AFG64/assignment_1_Adria_Fijo/actions/runs/44720653840"
+}

@@ -1,0 +1,129 @@
+{
+  "tables": [
+    {
+      "columns": [
+        {
+          "name": "TimeGenerated",
+          "type": "datetime"
+        },
+        {
+          "name": "ContainerAppName_s",
+          "type": "string"
+        },
+        {
+          "name": "RevisionName_s",
+          "type": "string"
+        },
+        {
+          "name": "Log_s",
+          "type": "string"
+        }
+      ],
+      "name": "PrimaryResult",
+      "rows": [
+        [
+          "2026-11-19T23:50:50.468Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migration applied version=001_init.sql"
+        ],
+        [
+          "2026-11-19T23:50:50.468Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=1"
+        ],
+        [
+          "2026-11-19T23:51:00.046Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=1"
+        ],
+        [
+          "2026-11-19T23:51:00.046Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migration applied version=001_init.sql"
+        ],
+        [
+          "2026-11-20T01:33:49.124Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T01:53:21.489Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T01:54:28.64Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T02:05:00.846Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T02:05:24.861Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:08:59.415Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:11:39.027Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:23:17.476Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:23:20.638Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:39:18.514Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-20T10:39:40.142Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-26T18:00:08.769Z",
+          "afijo-ieu2024-restaurants",
+          "afijo-ieu2024-restaurants--latest",
+          "migrations committed applied=0"
+        ],
+        [
+          "2026-11-26T18:00:22.548Z",
+          "afijo-ieu2024-dining",
+          "afijo-ieu2024-dining--latest",
+          "migrations committed applied=0"
+        ]
+      ]
+    }
+  ]
+}

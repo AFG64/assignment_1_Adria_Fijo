@@ -1,0 +1,12 @@
+{
+  "restaurants": {
+    "db": "ok",
+    "status": "ok",
+    "version": "0d313d7b08ea4ba5ed79b4f47ba7ca660c37ad6a"
+  },
+  "dining": {
+    "db": "ok",
+    "status": "ok",
+    "version": "0d313d7b08ea4ba5ed79b4f47ba7ca660c37ad6a"
+  }
+}
