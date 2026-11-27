@@ -595,6 +595,13 @@
             "type": "number",
             "minimum": 0,
             "nullable": true
+          },
+          "line_total": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "readOnly": true,
+            "description": "Quantity multiplied by the stored unit price, computed by SQL. Null when the unit price is unknown."
           }
         },
         "required": [
@@ -602,7 +609,8 @@
           "visit_id",
           "item_name",
           "quantity",
-          "unit_price"
+          "unit_price",
+          "line_total"
         ],
         "additionalProperties": false
       },

@@ -52,10 +52,16 @@ with closing(connect(url)) as connection:
         raise AssertionError('Conflicting transfer accepted')
 app=Flask('sql-check');register(app);web=app.test_client()
 path='/saved-restaurants/900/visits/800'
-assert web.get('/saved-restaurants/900/visits').json[0]['notes']=='Synthetic'
+history=web.get('/saved-restaurants/900/visits').json
+assert history[0]['notes']=='Synthetic' and history[0]['items'][0]['line_total']==3.5
 assert web.get(path+'/bills/802').data==b'%PDF-synthetic\\x00\\xff'
 assert web.get('/saved-restaurants/901/visits/800/bills/802').status_code==404
-assert web.post(path+'/items',json={'item_name':'Bread','quantity':2,'unit_price':1.25}).status_code==201
+item=web.post(path+'/items',json={'item_name':'Bread','quantity':2,'unit_price':1.25})
+assert item.status_code==201 and item.json['line_total']==2.5
+assert web.post(path+'/items',json={'item_name':'Tampered total','line_total':0}).status_code==400
+for label,quantity,price,total in [('Unknown',1,None,None),('Free',2,0,0),('Fraction',3,0.10,0.30),('Maximum',2147483647,9999999999.99,float(Decimal('21474836469978525163.53')))]:
+    result=web.post(path+'/items',json={'item_name':label,'quantity':quantity,'unit_price':price})
+    assert result.status_code==201 and result.json['line_total']==total
 result=web.post(path+'/bills',data={'bill_file':(BytesIO(b'%PDF-upload'),'upload.pdf')})
 assert result.status_code==201,result.text
 assert web.get(path+'/bills/'+str(result.json['id'])).data==b'%PDF-upload'

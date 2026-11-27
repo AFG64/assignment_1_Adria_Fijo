@@ -2,6 +2,7 @@ from contextlib import contextmanager, closing
 from io import BytesIO
 from unittest.mock import MagicMock
 import datetime
+from decimal import Decimal
 
 from flask import Flask
 import pymssql
@@ -25,26 +26,39 @@ def client(monkeypatch):
 
 def test_history(client):
     web, cursor = client
-    cursor.fetchall.side_effect = [[dict(id=1, saved_restaurant_id=2, visit_date=datetime.date(2026, 1, 1), rating=4, notes=None)], [dict(unit_price=2)], []]
+    cursor.fetchall.side_effect = [[dict(id=1, saved_restaurant_id=2, visit_date=datetime.date(2026, 1, 1), rating=4, notes=None)], [dict(unit_price=Decimal('2.00'), line_total=Decimal('6.00'))], []]
     response = web.get('/saved-restaurants/2/visits')
     assert response.status_code == 200
     assert response.json[0]['visit_date'] == '2026-01-01'
     assert response.json[0]['items'][0]['unit_price'] == 2
+    assert response.json[0]['items'][0]['line_total'] == 6
     assert web.post('/saved-restaurants/2/visits', json={}).status_code == 400
     assert web.delete('/saved-restaurants/2/history').status_code == 204
 
 
-@pytest.mark.parametrize('data', [{}, [], {'item_name':' '}, {'item_name':'x','extra':1}, {'item_name':'x','quantity':True}, {'item_name':'x','quantity':0}, {'item_name':'x','unit_price':-1}, {'item_name':'x','unit_price':'nan'}, {'item_name':'x','unit_price':float('inf')}, {'item_name':'x','unit_price':10**400}])
+@pytest.mark.parametrize('data', [{}, [], {'item_name':' '}, {'item_name':'x','extra':1}, {'item_name':'x','line_total':1}, {'item_name':'x','quantity':True}, {'item_name':'x','quantity':0}, {'item_name':'x','unit_price':-1}, {'item_name':'x','unit_price':'nan'}, {'item_name':'x','unit_price':float('inf')}, {'item_name':'x','unit_price':10**400}])
 def test_invalid_item(client, data):
     assert client[0].post('/saved-restaurants/2/visits/1/items', json=data).status_code == 400
 
 
 def test_items_and_ownership(client):
     web, cursor = client
-    cursor.fetchone.side_effect = [dict(id=1), dict(id=3), dict(id=3,visit_id=1,item_name='Soup',quantity=1,unit_price=2)]
-    assert web.post('/saved-restaurants/2/visits/1/items', json={'item_name':'Soup','unit_price':2}).json['unit_price'] == 2
+    cursor.fetchone.side_effect = [dict(id=1), dict(id=3), dict(id=3,visit_id=1,item_name='Soup',quantity=1,unit_price=Decimal('2.00'),line_total=Decimal('2.00'))]
+    result = web.post('/saved-restaurants/2/visits/1/items', json={'item_name':'Soup','unit_price':2})
+    assert result.status_code == 201 and result.json['unit_price'] == 2 and result.json['line_total'] == 2
     cursor.fetchone.side_effect = lambda: None
     assert web.post('/saved-restaurants/9/visits/1/items', json={'item_name':'Soup'}).status_code == 404
+
+
+@pytest.mark.parametrize('price,total', [(None,None), (Decimal('0.00'),Decimal('0.00')),
+    (Decimal('0.10'),Decimal('0.30')), (Decimal('3.50'),Decimal('7.00')),
+    (Decimal('9999999999.99'),Decimal('21474836469978525163.53'))])
+def test_item_numbers_are_serialized_without_changing_the_database_row(price, total):
+    row = {'id':1, 'unit_price':price, 'line_total':total}
+    result = store.item_response(row)
+    assert result == {'id':1, 'unit_price':None if price is None else float(price),
+                      'line_total':None if total is None else float(total)}
+    assert row == {'id':1, 'unit_price':price, 'line_total':total}
 
 
 @pytest.mark.parametrize('content,media', [(b'%PDF-test','application/pdf'),(b'\xff\xd8\xfftest','image/jpeg'),(b'\x89PNG\r\n\x1a\ntest','image/png')])

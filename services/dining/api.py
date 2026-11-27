@@ -100,11 +100,8 @@ def add_item(saved_id, visit_id):
         require_visit(cursor, saved_id, visit_id)
         cursor.execute('INSERT INTO dbo.visit_items (visit_id,item_name,quantity,unit_price) OUTPUT INSERTED.id VALUES (%s,%s,%s,%s)', (visit_id, name.strip(), quantity, price))
         item_id = cursor.fetchone()['id']
-        cursor.execute('SELECT id,visit_id,item_name,quantity,unit_price FROM dbo.visit_items WHERE id=%s', (item_id,))
-        row = cursor.fetchone()
-        if row['unit_price'] is not None:
-            row['unit_price'] = float(row['unit_price'])
-        return jsonify(row), 201
+        cursor.execute('SELECT id,visit_id,item_name,quantity,unit_price,line_total FROM dbo.visit_items WHERE id=%s', (item_id,))
+        return jsonify(store.item_response(cursor.fetchone())), 201
 
 
 @api.post('/saved-restaurants/<int:saved_id>/visits/<int:visit_id>/bills')

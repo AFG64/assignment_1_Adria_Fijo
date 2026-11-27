@@ -11,6 +11,7 @@ api = Api({'restaurants': 'http://127.0.0.1:8001', 'dining': 'http://127.0.0.1:8
 marker = 'Local baseline check ' + uuid4().hex
 try:
     before = exercise(api, populate=True, marker=marker)
+    assert before['line_total'] == 7, 'Computed total missing or incorrect in real API response'
     assert exercise(api, populate=True, marker=marker) == before, 'Repeat duplicated or changed data'
     assert exercise(api, marker=marker) == before, 'Read-only verification changed data'
     print('Baseline workflow: real HTTP/SQL, CORS, cross-service visit, item, exact bill bytes and repeat all passed')

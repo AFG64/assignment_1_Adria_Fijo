@@ -36,6 +36,10 @@ Use http://localhost:8080 with compose's current UI_ORIGIN; using a different
 browser origin requires matching service CORS configuration. Origin and
 Content-Type preflight remain handled in the existing service application code.
 
+Visit items display their API-provided line total to two decimal places. A zero
+price shows 0.00; an unknown price shows neither a unit price nor a total. The
+browser does not send totals or calculate a separate stored value.
+
 ## States and recovery
 
 Lists/details show loading, empty, not-found/request failure and reload controls.

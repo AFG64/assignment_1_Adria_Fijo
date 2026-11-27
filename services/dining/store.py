@@ -25,17 +25,24 @@ def visit(cursor, saved_id, visit_id):
     return cursor.fetchone()
 
 
+def item_response(row):
+    result = dict(row)
+    for field in ('unit_price', 'line_total'):
+        if result[field] is not None:
+            result[field] = float(result[field])
+    return result
+
+
 def history(cursor, saved_id):
     cursor.execute('SELECT id,saved_restaurant_id,visit_date,rating,notes FROM dbo.visits WHERE saved_restaurant_id=%s ORDER BY visit_date DESC,id DESC', (saved_id,))
     visits = cursor.fetchall()
     for row in visits:
         row['visit_date'] = row['visit_date'].isoformat()
-        for table, fields in [('visit_items', 'id,visit_id,item_name,quantity,unit_price'), ('bills', 'id,visit_id')]:
+        for table, fields in [('visit_items', 'id,visit_id,item_name,quantity,unit_price,line_total'), ('bills', 'id,visit_id')]:
             cursor.execute(f'SELECT {fields} FROM dbo.{table} WHERE visit_id=%s ORDER BY id', (row['id'],))
             rows = cursor.fetchall()
-            for item in rows:
-                if 'unit_price' in item and item['unit_price'] is not None:
-                    item['unit_price'] = float(item['unit_price'])
+            if table == 'visit_items':
+                rows = [item_response(item) for item in rows]
             row['items' if table == 'visit_items' else 'bills'] = rows
     return visits
 
