@@ -52,11 +52,14 @@ from pathlib import Path
 import pymssql
 from service_runtime.database import connect, migrate, probe
 url=os.environ['DATABASE_URL']
-assert migrate(url,Path('/app/migrations'))==1
+expected=sorted(path.name for path in Path('/app/migrations').glob('[0-9][0-9][0-9]_*.sql'))
+assert migrate(url,Path('/app/migrations'))==len(expected)
 assert migrate(url,Path('/app/migrations'))==0
 probe(url)
 with connect(url) as connection:
     cursor=connection.cursor()
+    cursor.execute('SELECT version FROM dbo.schema_migrations ORDER BY version')
+    assert [row[0] for row in cursor.fetchall()]==expected
     cursor.execute("SELECT IS_ROLEMEMBER('db_owner')")
     assert cursor.fetchone()[0]==0
     cursor.execute("DECLARE @r int; EXEC @r=sp_getapplock @Resource='saved:1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=2000; SELECT @r;")

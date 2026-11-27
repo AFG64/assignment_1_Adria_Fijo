@@ -1,4 +1,4 @@
 {
-  "maximum_version": 1,
-  "before_evidence_confirmed": false
+  "maximum_version": 2,
+  "before_evidence_confirmed": true
 }
