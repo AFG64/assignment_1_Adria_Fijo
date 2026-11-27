@@ -51,7 +51,7 @@ jobs:
         run: python scripts/check_stack.py
       - name: Repeat compose startup with retained credentials and data
         run: docker compose up -d --wait --wait-timeout 240
-      - name: Upgrade populated Dining data and retain rows and bills
+      - name: Populated upgrade, atomic failure, immutable ledger and forward recovery
         run: python scripts/check_item_migration.py
       - name: Restaurant SQL API workflows
         run: python scripts/check_restaurant_api.py
@@ -61,7 +61,7 @@ jobs:
         run: python scripts/check_seam.py
       - name: Azure contained-user role compatibility on LOCAL SQL only
         run: python scripts/check_azure_roles.py
-      - name: Synthetic baseline workflow on LOCAL HTTP and SQL only
+      - name: Local SQL outage, recovery, logs and synthetic baseline preservation
         run: python scripts/check_baseline_local.py
       - name: Logs on failure
         if: failure()

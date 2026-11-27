@@ -9,6 +9,8 @@ import sys
 import tempfile
 from urllib.parse import urlsplit
 
+import pymssql
+
 from service_runtime.database import connect, migrate, probe
 
 
@@ -31,6 +33,62 @@ def ledger(url):
         cursor = connection.cursor()
         cursor.execute('SELECT version,checksum,applied_at FROM dbo.schema_migrations ORDER BY version')
         return cursor.fetchall()
+
+
+def verify_recovery(url, folder, before, applied):
+    with tempfile.TemporaryDirectory() as directory:
+        candidate = Path(directory)
+        for path in folder.glob('*.sql'):
+            shutil.copyfile(path, candidate / path.name)
+        failed = candidate / '003_abort_fixture.sql'
+        failed.write_text("ALTER TABLE dbo.visit_items ADD recovery_probe bit NULL;\n"
+                          "UPDATE dbo.visit_items SET item_name='must roll back';\n"
+                          "THROW 50002, 'Local recovery fixture failure', 1;\n")
+        try:
+            migrate(url, candidate)
+        except pymssql.DatabaseError as error:
+            assert error.args[0] == 50002
+        else:
+            raise AssertionError('A failed migration unexpectedly committed')
+        assert snapshot(url) == before and ledger(url) == applied
+        with closing(connect(url)) as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT COL_LENGTH('dbo.visit_items','recovery_probe')")
+            assert cursor.fetchone()[0] is None, 'Failed DDL did not roll back'
+        failed.unlink()
+
+        second = candidate / '002_add_item_line_total.sql'
+        original = second.read_bytes()
+        second.write_bytes(original + b'\n-- Changed applied fixture\n')
+        try:
+            migrate(url, candidate)
+        except ValueError as error:
+            assert 'Applied migration changed' in str(error)
+        else:
+            raise AssertionError('An edited applied migration was accepted')
+        assert snapshot(url) == before and ledger(url) == applied
+        second.write_bytes(original)
+
+        old_image = candidate / 'old-image'
+        old_image.mkdir()
+        shutil.copyfile(folder / '001_init.sql', old_image / '001_init.sql')
+        try:
+            migrate(url, old_image)
+        except ValueError as error:
+            assert 'Applied migration missing from image' in str(error)
+        else:
+            raise AssertionError('An image missing applied 002 was accepted')
+        assert snapshot(url) == before and ledger(url) == applied
+
+        forward = candidate / '003_forward_fixture.sql'
+        forward.write_text('ALTER TABLE dbo.visit_items ADD recovery_note nvarchar(40) NULL;\n')
+        assert migrate(url, candidate) == 1
+        assert snapshot(url) == before
+        recovered = ledger(url)
+        assert recovered[:2] == applied and recovered[-1][0] == forward.name
+        assert migrate(url, candidate) == 0 and ledger(url) == recovered
+        probe(url)
+    print('Disposable recovery: failed DDL/data/ledger rolled back; edited/missing applied migrations rejected; new forward migration and repeat no-op passed')
 
 
 def main():
@@ -78,6 +136,7 @@ def main():
         assert migrate(url, folder) == 0
         assert snapshot(url) == before and ledger(url) == applied
         probe(url)
+        verify_recovery(url, folder, before, applied)
     print('Populated 001 to 002: original rows/PDF/ledger retained; persisted totals, null/zero/fraction/max inputs, new writes and repeat no-op passed')
 
 
