@@ -97,7 +97,8 @@ HTTPS endpoints by main's deployment pipeline. The static UI receives public API
 origins through generated config.js. Secret DATABASE_URL values are not stored
 in system.yaml or UI files. The monolith continues to use its legacy configuration.
 
-Both services currently have only 001_init.sql. The populated Azure baseline
-must remain intact until the student captures/confirms before evidence; migration
-002 is still blocked by the committed checkpoint. See
-[Azure operations](AZURE_OPERATIONS.md#before-migration-002) for the release gate.
+Restaurants has only 001_init.sql; Dining also has 002_add_item_line_total.sql.
+The approved before bundle and checkpoint permit 002 in source. Actual deployed
+state is determined by the successful main release and service versions. See
+[migration verification](MIGRATIONS.md) and
+[Azure operations](AZURE_OPERATIONS.md#before-migration-002) for the release gates.

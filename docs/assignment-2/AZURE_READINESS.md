@@ -79,8 +79,10 @@ completed merely by this configuration or the local tests.
 
 First deploy 001 only, then populate/verify the synthetic baseline. STOP so the
 user can capture before evidence and explicitly confirm it before migration 002.
-The committed migration checkpoint remains maximum_version=1 and
-before_evidence_confirmed=false. Do not edit an applied migration or import
+The user confirmed the captured before bundle on 27 November. The source checkpoint
+now permits maximum_version=2/before_evidence_confirmed=true for Dining 002;
+check actual deployment separately and pause for after evidence after its first release.
+Do not edit an applied migration or import
 private Assignment 1 records without a separate explicit request.
 
 ## First application release

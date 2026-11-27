@@ -19,8 +19,10 @@ Every main release rebuilds SHA-tagged images, applies pending forward migration
 checks both own databases, and publishes public-only UI configuration. Initial
 resources and operating commands are documented in
 [Azure operations](docs/assignment-2/AZURE_OPERATIONS.md).
-Migration 002 is gated until the populated 001 baseline and the user's before
-evidence are confirmed. Private local Assignment 1 data is not automatically
+Dining migration 002 adds SQL-maintained ordered-item totals. The populated 001
+before evidence was confirmed; source approval and actual deployment are checked
+separately. See [migration verification and recovery](docs/assignment-2/MIGRATIONS.md).
+Private local Assignment 1 data is not automatically
 uploaded. Assignment 1 code and instructions remain available for reference.
 
 ## Run the current system locally
@@ -127,6 +129,7 @@ already in Git history or untrack them automatically.
 Personal decisions, AI usage, explanations, report/disclosure and selected
 evidence are written by the student. See [ADRs](ADR.md) and [AI usage](AI_USAGE.md).
 Local agent instructions and the working roadmap are intentionally ignored;
-they are not required to run the application or its CI. Migration 002 remains
-paused at the populated-baseline checkpoint until the student confirms before
-evidence is captured.
+they are not required to run the application or its CI. After the first 002
+deployment, capture and review its paired after evidence before another release.
+The final submission tag is created only after the final main SHA is deployed,
+healthy and includes the required student records.

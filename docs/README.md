@@ -13,6 +13,7 @@ repository root unless stated otherwise.
 | Browser operations mapped to service endpoints | [API transition](assignment-2/API_TRANSITION.md) |
 | Visit/deletion ordering, partial failure and safe retry | [Service coordination](assignment-2/SERVICE_COORDINATION.md) |
 | Static UI behavior, configuration and verification | [Static UI](assignment-2/STATIC_UI.md) |
+| Populated 001-to-002 upgrade, paired evidence and forward recovery | [Migrations](assignment-2/MIGRATIONS.md) |
 | Initial Azure setup, main releases and recovery commands | [Azure operations](assignment-2/AZURE_OPERATIONS.md) |
 | Actual Azure names, roles, settings and service origins | [Azure readiness/inventory](assignment-2/AZURE_READINESS.md) |
 | Changes superseding the original Azure contract | [Requirement updates](assignment-2/REQUIREMENT_UPDATES.md) |
@@ -45,5 +46,5 @@ The root system.schema.json is the supplied official schema, not a custom one.
 
 The reports and process records are student-owned and are not rewritten by these
 technical guides. The local working roadmap/instructions remain local; consult
-them when continuing the assignment. Migration 002 is paused until the populated
-Azure baseline and the student's before evidence are explicitly confirmed.
+them when continuing the assignment. The populated 001 before bundle was approved;
+after the first 002 deployment, pause for paired after evidence before another release.

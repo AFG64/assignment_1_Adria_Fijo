@@ -3,7 +3,7 @@
 This is technical documentation, not a personal ADR or report. Initial resources
 were provisioned on 20 November; see AZURE_READINESS.md for the verified inventory.
 `infra/azure/plan.json` is the nonsecret deployment target,
-derived from the authenticated IE username and verified GitHub IDs. It proposes
+derived from the authenticated IE username and verified GitHub IDs. It targets
 France Central for both app and SQL, within the subscription's current allowlist.
 Name availability and actual free-offer acceptance must pass before use.
 
@@ -130,13 +130,14 @@ records and their before evidence. Do not automatically transfer private local
 Assignment 1 records to the public cloud. The existing offline transfer tool is
 available for an explicitly chosen, quiescent, copied source; it is not run by CD.
 
-`infra/azure/migration-checkpoint.json` currently permits version 001 only, with
-before_evidence_confirmed false. CI and deployment both reject a later migration.
-Only after the user's explicit confirmation may a change raise maximum_version
-and record before_evidence_confirmed true alongside the new migration. The file
-is an operational release gate, not an authored evidence/AI/ADR record.
+The user confirmed the saved before bundle on 27 November. The source
+`infra/azure/migration-checkpoint.json` now permits maximum_version 2 with
+before_evidence_confirmed true alongside Dining 002. CI/deployment reject files
+beyond that version. Actual Azure state must still be checked against the
+successful release and live service versions. The file is an operational release
+gate. The [migration guide](MIGRATIONS.md) covers preservation and recovery.
 
-After an authorized, successful 001 application release:
+At the initial 001-only checkpoint, after an authorized successful release:
 
 ```sh
 python scripts/azure_baseline.py plan      # offline description only
@@ -151,11 +152,15 @@ record. Repeating after an uncertain write first reads the current state; duplic
 markers are an error. Inspection returns stable IDs, visited status and the bill
 hash for technical verification; the user still captures/selects their own
 before/after evidence. An incomplete or changed baseline fails explicitly.
+Inspection supports the original response and checks line_total 7.00 when the
+evolved API returns it. After 002, inspect rather than populate; the populate
+command deliberately refuses the confirmed/evolved checkpoint. Pause after
+the first 002 release for paired after evidence before further deployments.
 
 `scripts/check_baseline_local.py` exercises this exact population/inspection flow
 against local real HTTP/SQL and cleans only its UUID-named synthetic records.
 `scripts/check_azure_roles.py` creates disposable databases inside the local SQL
-container with contained users and precisely the proposed Azure roles. It verifies
+container with contained users and precisely the deployed Azure roles. It verifies
 first/repeat migrations, health writes, app locks, repeat seeding, absence of
 db_owner and denial of peer-database access. Test databases are removed and the
 instance's original contained-authentication/advanced-options settings restored.
@@ -218,4 +223,4 @@ identify applied filenames and no-op reruns. Never fix a startup failure by
 deleting a populated database or editing an applied migration. After a successful
 release/release retry, verify stable synthetic IDs/item values and exact bill
 bytes using azure_baseline.py inspect. This technical check does not collect or
-confirm the user's report evidence or authorize 002.
+complete the user's report evidence or authorize a later release.

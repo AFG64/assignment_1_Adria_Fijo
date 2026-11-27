@@ -75,8 +75,10 @@ containers, never Azure SQL. Disposable database/record checks remove their own
 targets. The stack check retains its local restart marker for repeated checks. The seam check deliberately stops and restores
 peers. check_stack.py verifies repeat boot and restart persistence;
 check_dining_sql.py also verifies exact bill bytes across a restart.
-check_azure_roles.py checks the proposed Azure contained-user roles locally and
+check_azure_roles.py checks the deployed Azure contained-user roles locally and
 restores the original local SQL instance settings.
+check_baseline_local.py also stops/restarts local SQL, requires own health 503
+then 200, and verifies retained synthetic IDs/item totals/PDF bytes and log fields.
 
 Compose-only service_runtime.local_start resolves the own mounted password into
 DATABASE_URL before executing the service command. Azure keeps the image's
@@ -168,7 +170,9 @@ compares all source fields, relationships and bill bytes. Originals are untouche
 For an actual offline transfer, configure `RESTAURANTS_DATABASE_URL` and
 `DINING_DATABASE_URL` securely in the local environment, then run the first
 command with `--apply`. Never pass URLs as command arguments or paste credentials
-into chat. The targets must already have 001 applied. Stop all application writes
+into chat. Apply the current migration set to the targets first (Restaurants 001,
+Dining 001/002); computed totals are derived from transferred quantity/price and
+are not copied as independent source fields. Stop all application writes
 and restaurant seeding; use empty targets or exact matching rows. A seeded target
 may have conflicting IDs, which are rejected rather than overwritten.
 
@@ -196,5 +200,5 @@ until 204. The catalog row remains. See
 [coordination details](SERVICE_COORDINATION.md) for concurrency,
 recovery and the distinction between peer failure and an uncertain own write.
 Run `python scripts/check_seam.py` against the local compose stack to check real
-service calls, stopped peers, recovery and concurrent deletion. No migration 002
-has been added or applied.
+service calls, stopped peers, recovery and concurrent deletion. See the
+[migration guide](MIGRATIONS.md) for 002 preservation and forward recovery checks.
