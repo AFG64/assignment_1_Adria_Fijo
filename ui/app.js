@@ -261,7 +261,11 @@
     const path = `/saved-restaurants/${savedId}/visits/${visit.id}`;
     const items = document.createElement('ul'); items.className = 'item-list';
     for (const item of visit.items) {
-      const entry = document.createElement('li'); entry.textContent = `${item.item_name} × ${item.quantity}${item.unit_price == null ? '' : ` · Unit price ${item.unit_price.toFixed(2)}`}`; items.append(entry);
+      const price = item.unit_price == null ? '' : ` · Unit price ${item.unit_price.toFixed(2)}`;
+      const total = item.line_total == null ? '' : ` · Total ${item.line_total.toFixed(2)}`;
+      const entry = document.createElement('li');
+      entry.textContent = `${item.item_name} × ${item.quantity}${price}${total}`;
+      items.append(entry);
     }
     if (visit.items.length) li.append(items);
     li.append(composer('Add an ordered item',

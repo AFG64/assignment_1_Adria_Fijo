@@ -1,0 +1,24 @@
+[
+  {
+    "bills": [
+      {
+        "id": 1,
+        "visit_id": 1
+      }
+    ],
+    "id": 1,
+    "items": [
+      {
+        "id": 1,
+        "item_name": "Baseline soup",
+        "quantity": 2,
+        "unit_price": 3.5,
+        "visit_id": 1
+      }
+    ],
+    "notes": "Picky Azure 001 synthetic baseline",
+    "rating": 4.0,
+    "saved_restaurant_id": 1,
+    "visit_date": "2026-11-01"
+  }
+]

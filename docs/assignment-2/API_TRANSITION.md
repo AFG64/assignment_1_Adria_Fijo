@@ -33,6 +33,11 @@ responses, then uses saved IDs for dining requests. IDs are not interchangeable.
 | Download bill | dining: `GET /saved-restaurants/{saved_id}/visits/{visit_id}/bills/{bill_id}` |
 | Health | each service: `GET /health` |
 
+Ordered-item creation and visit history return read-only `line_total` alongside
+`unit_price`: Dining SQL computes quantity times stored unit price. Unknown prices
+produce null totals; clients must omit this field from requests. Migration 002
+adds the persisted column without changing existing item inputs or ownership.
+
 ## Ownership and server calls
 
 Restaurants owns restaurants, saved_restaurants, restaurant_images and

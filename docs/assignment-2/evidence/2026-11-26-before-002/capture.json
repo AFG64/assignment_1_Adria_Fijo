@@ -1,0 +1,29 @@
+{
+  "captured_at_utc": "2026-11-26T18:37:55.232557+00:00",
+  "deployed_sha": "0d313d7b08ea4ba5ed79b4f47ba7ca660c37ad6a",
+  "ui_url": "https://afijoieu2024ui.z28.web.core.windows.net/#/restaurants/15",
+  "api_origins": {
+    "restaurants": "https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io",
+    "dining": "https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io"
+  },
+  "migration_checkpoint": {
+    "maximum_version": 1,
+    "before_evidence_confirmed": false
+  },
+  "baseline": {
+    "restaurant_id": 15,
+    "saved_id": 1,
+    "visit_id": 1,
+    "item_id": 1,
+    "bill_id": 1,
+    "quantity": 2,
+    "unit_price": 3.5,
+    "line_total_present": false,
+    "bill_bytes": 648,
+    "bill_sha256": "abc73e5230c4d7659f95e0f4871c4e1aa3d77f16d49d2c2bea3c469e46ead63e"
+  },
+  "migration_001_sha256": {
+    "restaurants": "1423766643b6e00c618d7ef4e07614e1b8170fb1d56400c48c2375187318a9c8",
+    "dining": "fe60283c82c23cbd95f15430483a141844d05b64e3acf1cea065fa3227959ac9"
+  }
+}

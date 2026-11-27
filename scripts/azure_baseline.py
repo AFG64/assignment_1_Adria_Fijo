@@ -95,6 +95,8 @@ def exercise(api, *, populate=False, marker=MARKER):
                         {'item_name': ITEM, 'quantity': 2, 'unit_price': 3.5}, expected=201)
     if item is None or item['quantity'] != 2 or item['unit_price'] != 3.5:
         raise SetupError('Synthetic item values missing/changed')
+    if 'line_total' in item and item['line_total'] != 7:
+        raise SetupError('Synthetic item computed total changed')
     bills = [bill for bill in visit['bills']
              if api.call('dining', 'GET', path + '/bills/' + str(bill['id']), binary=True) == BILL]
     if len(bills) > 1:
@@ -111,9 +113,12 @@ def exercise(api, *, populate=False, marker=MARKER):
     saved = api.call('restaurants', 'GET', f'/saved-restaurants/{sid}')
     if saved['status'] != 'visited':
         raise SetupError('Cross-service visited status was not retained')
-    return {'restaurant_id': row['id'], 'saved_id': sid, 'visit_id': visit['id'],
+    result = {'restaurant_id': row['id'], 'saved_id': sid, 'visit_id': visit['id'],
             'item_id': item['id'], 'bill_id': bill['id'], 'bill_sha256': hashlib.sha256(BILL).hexdigest(),
             'status': saved['status'], 'visit_date': visit['visit_date'], 'rating': visit['rating']}
+    if 'line_total' in item:
+        result['line_total'] = item['line_total']
+    return result
 
 
 def main():

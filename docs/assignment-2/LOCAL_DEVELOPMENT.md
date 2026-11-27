@@ -62,6 +62,7 @@ python scripts/validate_contracts.py --require-system
 python -m pytest -q --cov=backend.restaurant_domain --cov=backend.dining_history --cov=service_runtime --cov=services.restaurants --cov=services.dining --cov-report=term-missing --cov-report=json
 python scripts/check_domain_coverage.py
 python scripts/check_stack.py
+python scripts/check_item_migration.py
 python scripts/check_restaurant_api.py
 python scripts/check_dining_sql.py
 python scripts/check_seam.py
@@ -94,8 +95,13 @@ manifest and UID 10001. Gunicorn uses one worker; worker initialization applies
 migrations under a database lock before serving API requests. SQL scripts and
 ledger entries commit together. Checksums are verified, and changed or missing
 applied scripts cause startup to fail.
-No `002` exists yet. Do not edit `001` after applying it; use a new migration for
-future changes. No startup path drops a database or erases existing tables.
+Dining migration 002 adds a persisted line_total computed from quantity and
+unit_price, preserving existing rows and missing prices. Restaurants still has
+only 001. The before-evidence bundle was approved on 27 November; the source
+checkpoint permits 002, while the deployed version must be checked separately.
+Do not edit applied migrations. No startup path drops a database or erases tables.
+check_item_migration.py verifies a populated 001-to-002 upgrade, exact row/bill
+preservation, decimal totals and an unchanged ledger on repeated startup.
 
 Database connections use encrypted TDS, 5-second login/query timeouts and up to
 12 startup attempts with capped exponential backoff (about two minutes including

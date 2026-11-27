@@ -14,8 +14,9 @@ assert migrate(url, Path('/app/migrations')) == 0, 'Second boot reapplied migrat
 connection = connect(url)
 try:
     cursor = connection.cursor()
-    cursor.execute('SELECT COUNT(*) FROM dbo.schema_migrations')
-    assert cursor.fetchone()[0] == 1
+    cursor.execute('SELECT version FROM dbo.schema_migrations ORDER BY version')
+    expected = sorted(path.name for path in Path('/app/migrations').glob('[0-9][0-9][0-9]_*.sql'))
+    assert [row[0] for row in cursor.fetchall()] == expected
     cursor.execute("SELECT COUNT(*) FROM sys.tables WHERE name IN ('restaurants', 'saved_restaurants', 'visits', 'bills', 'visit_items')")
     assert cursor.fetchone()[0] == (2 if name == 'picky_restaurants' else 3)
     cursor.execute('SELECT COUNT(*) FROM dbo.health_probe')

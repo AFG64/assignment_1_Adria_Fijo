@@ -31,6 +31,22 @@ def test_existing_baseline_is_inspected_without_mutations():
     assert exercise(api, populate=True) == result # Repeat is also read-only.
 
 
+@pytest.mark.parametrize('total', [7, 0, None, 6])
+def test_baseline_checks_the_computed_total_when_present(total):
+    class WithTotals(ExistingBaseline):
+        def call(self, service, method, path, *args, **kwargs):
+            result = super().call(service, method, path, *args, **kwargs)
+            if path.endswith('/visits'):
+                result[0]['items'][0]['line_total'] = total
+            return result
+
+    if total == 7:
+        assert exercise(WithTotals())['line_total'] == 7
+    else:
+        with pytest.raises(SetupError, match='computed total'):
+            exercise(WithTotals())
+
+
 def test_uncertain_write_is_never_automatically_retried():
     calls = []
 

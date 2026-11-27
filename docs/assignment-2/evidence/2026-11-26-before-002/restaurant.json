@@ -1,0 +1,29 @@
+{
+  "address": null,
+  "category_name": "Synthetic baseline",
+  "city": "Madrid",
+  "country_code": null,
+  "description": null,
+  "id": 15,
+  "image_url": null,
+  "latitude": null,
+  "longitude": null,
+  "menu": null,
+  "phone": null,
+  "postal_code": null,
+  "price": null,
+  "reviews_count": 0,
+  "saved": {
+    "id": 1,
+    "notes": "Synthetic data retained for migration verification.",
+    "rating": null,
+    "restaurant_id": 15,
+    "status": "visited",
+    "would_go_back": null
+  },
+  "state": null,
+  "street": null,
+  "title": "Picky Azure 001 synthetic baseline",
+  "total_score": null,
+  "website": null
+}

@@ -1,0 +1,37 @@
+{
+  "https://afijoieu2024ui.z28.web.core.windows.net/release.json": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:53 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/health": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:53 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/health": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:54 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/restaurants/15": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:54 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-restaurants.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/saved-restaurants/1": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:54 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/saved-restaurants/1/visits": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:54 GMT",
+    "content_type": "application/json"
+  },
+  "https://afijo-ieu2024-dining.wonderfulsmoke-a09dc47c.francecentral.azurecontainerapps.io/saved-restaurants/1/visits/1/bills/1": {
+    "status": 200,
+    "date": "Thu, 26 Nov 2026 18:37:55 GMT",
+    "content_type": "application/pdf"
+  }
+}
